@@ -3,273 +3,190 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>After Hours - AU Simulator</title>
-
+  <title>After Hours - Interactive AU Simulator</title>
+  
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Google Fonts Inter & Playfair -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet" />
 
   <style>
     * {
       box-sizing: border-box;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
     }
-    html, body { width: 100%; height: 100%; margin: 0; padding: 0; background-color: #000; overflow: hidden; }
-    body { display: flex; align-items: center; justify-content: center; }
 
-    .phone-container {
-      position: relative; width: 100%; height: 100%; max-width: 430px;
-      background-color: #000; display: flex; flex-direction: column; overflow: hidden;
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: #0d0e12;
+      color: #e2e8f0;
+      overflow: hidden;
     }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Container utama bergaya Phone Display / AU Frame */
+    .au-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      max-width: 430px;
+      background-color: #121318;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 0 60px rgba(0, 0, 0, 0.8), 0 0 20px rgba(99, 102, 241, 0.15);
+    }
+
     @media (min-width: 500px) and (min-height: 700px) {
-      .phone-container {
-        height: 92vh; border-radius: 48px; border: 8px solid #1f293d;
-        box-shadow: 0 0 50px rgba(99, 102, 241, 0.25);
+      .au-container {
+        height: 92vh;
+        border-radius: 40px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
       }
     }
 
-    .island-collapsed { width: 140px; height: 32px; border-radius: 20px; }
-    .island-expanded  { width: 320px; height: 156px; border-radius: 26px; }
-
-    .app-screen { transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease; height: 100%; width: 100%; }
-    .chat-bubble-user  { background-color: #0084ff; color: #fff; border-bottom-right-radius: 4px; }
-    .chat-bubble-model { background-color: #26262a; color: #f3f4f6; border-bottom-left-radius: 4px; }
-
+    /* Custom Scrollbar minimalis */
     .custom-scroll::-webkit-scrollbar { width: 3px; }
-    .custom-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,.2); border-radius: 4px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 4px; }
 
-    @keyframes popIn {
-      from { opacity: 0; transform: translateY(8px) scale(.96); }
-      to   { opacity: 1; transform: translateY(0) scale(1); }
+    /* Bubble Chat Styling */
+    .chat-bubble-user {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      color: #ffffff;
+      border-bottom-right-radius: 4px;
     }
-    .msg-pop { animation: popIn .22s cubic-bezier(.16,1,.3,1) both; }
-
-    @keyframes dotBounce {
-      0%, 80%, 100% { transform: translateY(0); opacity: .45; }
-      40%           { transform: translateY(-4px); opacity: 1; }
+    .chat-bubble-model {
+      background-color: #1e2029;
+      color: #f1f5f9;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom-left-radius: 4px;
     }
-    .typing-dot { animation: dotBounce 1.1s infinite ease-in-out; }
-    .typing-dot:nth-child(2) { animation-delay: .15s; }
-    .typing-dot:nth-child(3) { animation-delay: .3s; }
 
-    @keyframes badgePulse {
-      0%, 100% { transform: scale(1); }
-      50%      { transform: scale(1.15); }
+    /* Transition Screens */
+    .screen-view {
+      transition: opacity 0.25s ease-in-out, transform 0.25s ease-in-out;
+      width: 100%;
+      height: 100%;
     }
-    .badge-pulse { animation: badgePulse 1.6s infinite; }
 
-    .toast-enter { opacity: 1 !important; transform: translateY(0) !important; }
+    .serif-font {
+      font-family: 'Playfair Display', serif;
+    }
   </style>
 </head>
 <body>
 
-  <div class="phone-container">
+  <div class="au-container">
 
-    <div id="wallpaper" class="absolute inset-0 bg-cover bg-center z-0"
-         style="background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop');"></div>
-    <div class="absolute inset-0 bg-black/40 z-0 pointer-events-none"></div>
-
-    <div class="relative z-50 w-full pt-3 px-6 flex justify-between items-center text-xs font-semibold text-white pointer-events-none select-none">
-      <span id="status-clock" class="w-12 text-center font-bold text-[13px]">12:00</span>
-
-      <div id="dynamic-island-container" class="pointer-events-auto absolute left-1/2 -translate-x-1/2 top-2.5 z-50 flex items-center justify-center">
-        <div id="dynamic-island" onclick="toggleIslandExpand()"
-             class="island-collapsed bg-black/95 backdrop-blur-xl text-white flex items-center justify-between px-3.5 cursor-pointer shadow-2xl transition-all duration-300 border border-white/10 overflow-hidden">
-          <div id="island-collapsed-content" class="flex items-center justify-between w-full text-xs">
-            <div class="flex items-center space-x-1.5 text-amber-400">
-              <i class="fa-solid fa-bullseye text-[10px] animate-pulse"></i>
-              <span id="island-mission-title" class="font-bold text-[11px] truncate max-w-[85px]">Misi 1</span>
-            </div>
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          </div>
-          <div id="island-expanded-content" class="hidden flex-col justify-between w-full h-full p-3">
-            <div class="flex justify-between items-center border-b border-gray-800 pb-1">
-              <span class="text-[10px] text-amber-400 font-extrabold uppercase">LOG MISI</span>
-              <span id="island-mission-badge" class="text-[9px] bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded-full">Misi 1 / 8</span>
-            </div>
-            <p id="island-mission-desc" class="text-[11px] text-gray-200 leading-tight my-1 font-medium">
-              Sapa Rian di WhatsApp mengenai boba Earl Grey.
-            </p>
-            <div>
-              <div class="flex justify-between text-[9px] text-gray-400 mb-1">
-                <span>Progres</span>
-                <span id="island-progress-label">0 / 2 pesan</span>
-              </div>
-              <div class="h-1 w-full bg-gray-800 rounded-full overflow-hidden">
-                <div id="island-progress" class="h-full bg-gradient-to-r from-amber-500 to-emerald-500 rounded-full transition-all duration-500" style="width:0%"></div>
-              </div>
-            </div>
-          </div>
+    <!-- HEADER / NAVIGATION BAR -->
+    <header class="w-full px-5 py-4 bg-[#121318]/90 backdrop-blur-md border-b border-white/10 z-40 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <button id="btn-back" onclick="showScreen('chats')" class="text-gray-400 hover:text-white transition hidden text-sm">
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <div>
+          <h1 id="header-title" class="text-sm font-bold tracking-wide text-white">After Hours AU</h1>
+          <p id="header-sub" class="text-[10px] text-indigo-400 font-medium">Misi 1: Salah Kirim Boba</p>
         </div>
       </div>
 
-      <div class="flex items-center space-x-1.5 text-white w-12 justify-end">
-        <i class="fa-solid fa-signal text-[10px]"></i>
-        <i class="fa-solid fa-wifi text-[10px]"></i>
-        <i class="fa-solid fa-battery-full text-[11px]"></i>
+      <div class="flex items-center space-x-3">
+        <!-- Badge Misi -->
+        <span id="mission-badge" onclick="toggleMissionModal()" class="cursor-pointer text-[10px] bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 px-2.5 py-1 rounded-full font-semibold hover:bg-indigo-500/20 transition">
+          Misi 1 / 8
+        </span>
       </div>
-    </div>
+    </header>
 
-    <div id="toast-wrap" class="absolute inset-x-0 top-16 z-[100] flex flex-col items-center space-y-2 pointer-events-none px-6"></div>
+    <!-- CONTENT AREA -->
+    <main class="relative flex-1 w-full h-full overflow-hidden">
 
-    <div class="relative z-10 flex-1 w-full h-full overflow-hidden">
-
-      <!-- LOCK SCREEN -->
-      <div id="screen-lock" class="app-screen absolute inset-0 flex flex-col justify-between p-6 pt-16 pb-12 text-center text-white z-40 bg-black/20 backdrop-blur-[2px]">
-        <div class="mt-4 flex flex-col items-center">
-          <i class="fa-solid fa-lock text-xs mb-2 opacity-80"></i>
-          <h2 id="lock-date" class="text-xs font-medium uppercase">Minggu, 25 Oktober</h2>
-          <h1 id="lock-clock" class="text-7xl font-light mt-1">12:00</h1>
-        </div>
-
-        <div class="bg-black/50 backdrop-blur-xl border border-white/15 rounded-3xl p-4 text-left shadow-2xl my-auto space-y-2">
-          <div class="flex items-center justify-between text-amber-400 text-xs font-bold">
-            <span><i class="fa-solid fa-bolt"></i> MISI AKTIF</span>
-            <button onclick="resetProgress()" class="text-[9px] font-semibold text-gray-400 hover:text-rose-400 border border-white/10 rounded-full px-2 py-0.5 transition">
-              <i class="fa-solid fa-rotate-left mr-1"></i>Reset
-            </button>
-          </div>
-          <p id="lock-mission-text" class="text-xs text-gray-200 leading-relaxed">
-            Misi 1: Cek WhatsApp dan kirim pesan ke Rian untuk menanyakan boba Earl Grey.
+      <!-- VIEW 1: DAFTAR CHAT KARAKTER -->
+      <section id="screen-chats" class="screen-view absolute inset-0 flex flex-col z-20 bg-[#121318]">
+        <!-- Banner Cerita Singkat -->
+        <div class="p-4 mx-4 mt-4 bg-gradient-to-r from-indigo-950/40 to-slate-900/40 border border-indigo-500/20 rounded-2xl">
+          <h2 class="serif-font italic text-sm text-indigo-200 mb-1">Pesan Masuk</h2>
+          <p id="au-status-desc" class="text-[11px] text-gray-400 leading-relaxed">
+            Sapa Rian di WhatsApp mengenai boba Earl Grey yang salah kirim ke rumahmu.
           </p>
         </div>
 
-        <div onclick="unlockPhone()" class="cursor-pointer animate-bounce flex flex-col items-center opacity-90">
-          <i class="fa-solid fa-chevron-up text-xs mb-1"></i>
-          <span class="text-[10px] uppercase font-bold text-gray-200">Ketuk Untuk Membuka</span>
+        <!-- List Kontak Chat -->
+        <div class="flex-1 overflow-y-auto custom-scroll p-4 space-y-2" id="character-list">
+          <!-- Item Kontak di-render via JS -->
         </div>
-      </div>
+      </section>
 
-      <!-- HOME SCREEN -->
-      <div id="screen-home" class="app-screen absolute inset-0 hidden flex-col justify-between p-6 pt-16 pb-8 z-30">
-        <div class="grid grid-cols-4 gap-y-6 gap-x-3 mt-2">
-          <div onclick="openApp('whatsapp')" class="flex flex-col items-center cursor-pointer active:scale-95 transition">
-            <div class="relative w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg">
-              <svg class="w-8 h-8 fill-current" viewBox="0 0 24 24"><path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.964 9.964 0 001.333 4.993L2 22l5.233-1.237a9.96 9.96 0 004.779 1.217h.004c5.505 0 9.988-4.478 9.989-9.984 0-2.669-1.038-5.176-2.925-7.062A9.925 9.925 0 0012.012 2zm5.827 14.195c-.246.693-1.436 1.328-1.973 1.398-.537.07-1.238.324-4.148-.847-3.528-1.42-5.787-5.011-5.964-5.246-.176-.235-1.436-1.906-1.436-3.633 0-1.727.899-2.576 1.219-2.926.32-.35.698-.437.931-.437.234 0 .468.002.667.012.21.009.492-.08.77.587.28.668.956 2.332 1.04 2.506.083.174.138.378.024.608-.114.23-.173.372-.346.578-.173.206-.365.46-.521.618-.173.173-.355.361-.153.708.203.347.902 1.488 1.936 2.41 1.33 1.185 2.451 1.554 2.8 1.728.348.173.551.144.756-.089.206-.232.882-1.028 1.116-1.382.234-.355.468-.292.783-.174.316.118 2.012.948 2.358 1.121.346.173.578.26.663.404.085.143.085.832-.161 1.525z"/></svg>
-              <span id="wa-home-badge" class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-rose-500 rounded-full text-[9px] font-bold flex items-center justify-center border-2 border-black badge-pulse">0</span>
-            </div>
-            <span class="text-[10px] text-white mt-1.5 font-medium">WhatsApp</span>
-          </div>
-
-          <div onclick="openApp('twitter')" class="flex flex-col items-center cursor-pointer active:scale-95 transition">
-            <div class="w-14 h-14 bg-black border border-gray-800 rounded-2xl flex items-center justify-center text-white shadow-lg">
-              <svg class="w-7 h-7 fill-current" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-            </div>
-            <span class="text-[10px] text-white mt-1.5 font-medium">X</span>
-          </div>
-
-          <div onclick="openApp('instagram')" class="flex flex-col items-center cursor-pointer active:scale-95 transition">
-            <div class="w-14 h-14 bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
-              <i class="fa-brands fa-instagram text-2xl"></i>
-            </div>
-            <span class="text-[10px] text-white mt-1.5 font-medium">Instagram</span>
-          </div>
-
-          <div onclick="openApp('tiktok')" class="flex flex-col items-center cursor-pointer active:scale-95 transition">
-            <div class="w-14 h-14 bg-black border border-gray-800 rounded-2xl flex items-center justify-center text-white shadow-lg">
-              <i class="fa-brands fa-tiktok text-2xl"></i>
-            </div>
-            <span class="text-[10px] text-white mt-1.5 font-medium">TikTok</span>
-          </div>
+      <!-- VIEW 2: RUANG OBROLAN (CHAT ROOM) -->
+      <section id="screen-room" class="screen-view absolute inset-0 hidden flex-col z-30 bg-[#0d0e12]">
+        
+        <!-- Messages Area -->
+        <div id="messages-container" class="flex-1 overflow-y-auto custom-scroll p-4 space-y-3">
+          <!-- Bubble Chat di-render via JS -->
         </div>
 
-        <div class="bg-white/20 backdrop-blur-2xl rounded-3xl p-3 flex justify-around items-center border border-white/20 mb-2">
-          <div onclick="openApp('whatsapp')" class="relative w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow cursor-pointer active:scale-95 transition">
-            <svg class="w-7 h-7 fill-current" viewBox="0 0 24 24"><path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.964 9.964 0 001.333 4.993L2 22l5.233-1.237a9.96 9.96 0 004.779 1.217h.004c5.505 0 9.988-4.478 9.989-9.984 0-2.669-1.038-5.176-2.925-7.062A9.925 9.925 0 0012.012 2zm5.827 14.195c-.246.693-1.436 1.328-1.973 1.398-.537.07-1.238.324-4.148-.847-3.528-1.42-5.787-5.011-5.964-5.246-.176-.235-1.436-1.906-1.436-3.633 0-1.727.899-2.576 1.219-2.926.32-.35.698-.437.931-.437.234 0 .468.002.667.012.21.009.492-.08.77.587.28.668.956 2.332 1.04 2.506.083.174.138.378.024.608-.114.23-.173.372-.346.578-.173.206-.365.46-.521.618-.173.173-.355.361-.153.708.203.347.902 1.488 1.936 2.41 1.33 1.185 2.451 1.554 2.8 1.728.348.173.551.144.756-.089.206-.232.882-1.028 1.116-1.382.234-.355.468-.292.783-.174.316.118 2.012.948 2.358 1.121.346.173.578.26.663.404.085.143.085.832-.161 1.525z"/></svg>
-            <span id="wa-dock-badge" class="hidden absolute -top-1 -right-1 min-w-[16px] h-4 px-1 bg-rose-500 rounded-full text-[8px] font-bold flex items-center justify-center border-2 border-black">0</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- WHATSAPP SCREEN -->
-      <div id="screen-whatsapp" class="app-screen absolute inset-0 hidden flex-col bg-gray-950 text-white z-30 pt-12">
-        <div class="px-4 py-3 bg-gray-900/90 backdrop-blur border-b border-gray-800 flex justify-between items-center">
-          <h1 class="text-xl font-bold text-emerald-500">WhatsApp</h1>
-          <span id="wa-mission-chip" class="text-[10px] font-bold text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2.5 py-1 rounded-full">Misi 1</span>
-        </div>
-        <div id="wa-chat-list" class="flex-1 overflow-y-auto custom-scroll divide-y divide-gray-900"></div>
-      </div>
-
-      <!-- CHAT ROOM SCREEN -->
-      <div id="screen-chat-room" class="app-screen absolute inset-0 hidden flex-col bg-slate-950 text-white z-[35] pt-10">
-        <div class="px-3 py-2.5 bg-gray-900/95 backdrop-blur border-b border-gray-800 flex items-center justify-between">
-          <div class="flex items-center space-x-2">
-            <button onclick="closeChatRoom()" class="text-emerald-500 text-base p-1 active:scale-90 transition">
-              <i class="fa-solid fa-chevron-left"></i>
-            </button>
-            <div class="relative">
-              <img id="chat-header-avatar" src="" alt="" class="w-9 h-9 rounded-full object-cover">
-              <span id="chat-online-dot" class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-gray-900 rounded-full"></span>
-            </div>
-            <div>
-              <h2 id="chat-header-name" class="text-xs font-bold leading-tight">Nama</h2>
-              <p id="chat-header-status" class="text-[10px] text-emerald-400">Online</p>
-            </div>
-          </div>
-        </div>
-
-        <div id="chat-messages" class="flex-1 overflow-y-auto p-3 space-y-3 custom-scroll bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px]"></div>
-
-        <form id="chat-form" onsubmit="sendMessage(event)" class="p-2.5 bg-gray-900 border-t border-gray-800 flex items-center space-x-2">
-          <input id="chat-input" type="text" autocomplete="off" placeholder="Ketik pesan..."
-                 class="flex-1 bg-gray-800 text-white text-xs rounded-full px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-emerald-500 placeholder-gray-500">
-          <button type="submit" id="chat-send-btn"
-                  class="w-9 h-9 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white rounded-full flex items-center justify-center text-xs transition active:scale-90">
+        <!-- Input Chat Bar -->
+        <form id="chat-form" onsubmit="handleSend(event)" class="p-3 bg-[#121318] border-t border-white/10 flex items-center space-x-2">
+          <input 
+            id="chat-input" 
+            type="text" 
+            placeholder="Ketik balasan..." 
+            autocomplete="off"
+            class="flex-1 bg-[#1a1c24] text-white text-xs rounded-xl px-4 py-3 focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder-gray-500 border border-white/5"
+          />
+          <button type="submit" class="w-10 h-10 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl flex items-center justify-center text-xs transition active:scale-95 shadow-lg shadow-indigo-600/30">
             <i class="fa-solid fa-paper-plane"></i>
           </button>
         </form>
-      </div>
 
-      <!-- PLACEHOLDER APPS -->
-      <div id="screen-twitter" class="app-screen absolute inset-0 hidden flex-col bg-black text-white z-30 pt-12 p-4">
-        <h1 class="text-base font-bold mb-2">Linimasa X</h1>
-        <p class="text-xs text-gray-400">Postingan X terhubung dengan alur cerita Misi 2.</p>
-      </div>
-      <div id="screen-instagram" class="app-screen absolute inset-0 hidden flex-col bg-black text-white z-30 pt-12 p-4">
-        <h1 class="text-base font-bold mb-2">Instagram</h1>
-        <p class="text-xs text-gray-400">Feed Instagram belum ada postingan baru.</p>
-      </div>
-      <div id="screen-tiktok" class="app-screen absolute inset-0 hidden flex-col bg-black text-white z-30 pt-12 p-4">
-        <h1 class="text-base font-bold mb-2">TikTok</h1>
-        <p class="text-xs text-gray-400">TikTok akan aktif pada misi mendatang.</p>
-      </div>
+      </section>
 
-    </div>
+    </main>
 
-    <div class="relative z-50 w-full py-2.5 flex justify-center items-center pointer-events-auto">
-      <div onclick="goHome()" class="w-32 h-1 bg-white/60 hover:bg-white rounded-full cursor-pointer transition"></div>
+    <!-- MISSION LOG MODAL -->
+    <div id="mission-modal" class="hidden absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+      <div class="bg-[#181a22] border border-white/10 rounded-2xl p-5 w-full max-w-xs space-y-4">
+        <div class="flex justify-between items-center border-b border-white/10 pb-2">
+          <h3 class="text-xs font-bold text-indigo-300">LOG ALUR CERITA</h3>
+          <button onclick="toggleMissionModal()" class="text-gray-400 text-xs"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        
+        <div class="space-y-2 max-h-60 overflow-y-auto custom-scroll" id="mission-selector-list">
+          <!-- List pilihan Misi 1-8 -->
+        </div>
+      </div>
     </div>
 
   </div>
 
+  <!-- LOGIK SHIFTED JAVASCRIPT -->
   <script>
-    /* ============================================================
-       STATE + PERSISTENSI
-       ============================================================ */
-    const SAVE_KEY = 'afterhours-save-v2';
+    // GAME STATE
+    let currentMission = 1;
+    let activeCharId = null;
 
-    const state = {
-      currentMission: 1,
-      activeChat: null,
-      islandExpanded: false,
-      progress: {},
-      unread: {},
-      histories: {}
-    };
-
-    /* ============================================================
-       KONFIGURASI KARAKTER — semua ID harus sama dengan PERSONAS di chat.js
-       ============================================================ */
+    // CONFIG KARAKTER (DISESUAIKAN DENGAN API GROQ)
     const CHARACTERS = {
-      rian:  { id: "rian",  name: "Rian Pratama", avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200&auto=format&fit=crop", unlockedAtMission: 1 },
-      siti:  { id: "siti",  name: "Siti",         avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop", unlockedAtMission: 2 },
-      dimas: { id: "dimas", name: "Dimas",        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop", unlockedAtMission: 3 },
-      ibu:   { id: "ibu",   name: "Ibu",          avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop", unlockedAtMission: 4 },
-      maya:  { id: "maya",  name: "Maya",         avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop", unlockedAtMission: 5 }
+      rian: { id: "rian", name: "Rian Pratama", role: "Desainer Grafis", avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200&auto=format&fit=crop", unlockedAt: 1 },
+      siti: { id: "siti", name: "Siti", role: "Sahabat", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop", unlockedAt: 2 },
+      dimas: { id: "dimas", name: "Dimas", role: "Sahabat Rian", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop", unlockedAt: 3 },
+      ibu: { id: "ibu", name: "Ibu", role: "Orang Tua", avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop", unlockedAt: 4 },
+      maya: { id: "maya", name: "Maya", role: "Rekan Kerja", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop", unlockedAt: 5 }
     };
 
+    // ALUR MISI AU
     const MISSIONS = {
       1: { title: "Misi 1", desc: "Sapa Rian di WhatsApp mengenai boba Earl Grey yang salah kirim." },
       2: { title: "Misi 2", desc: "Ngobrol di WhatsApp tentang boba dan postingan X." },
@@ -281,498 +198,184 @@
       8: { title: "Misi 8", desc: "Kencan romantis di Pantai Senja." }
     };
 
-    const MISSION_RULES = {
-      1: { char: "rian",  need: 2 },
-      2: { char: "siti",  need: 3 },
-      3: { char: "dimas", need: 3 },
-      4: { char: "ibu",   need: 2 },
-      5: { char: "maya",  need: 3 },
-      6: { char: "rian",  need: 3 },
-      7: { char: "maya",  need: 2 },
-      8: { char: "rian",  need: 4 }
+    // RIWAYAT CHAT
+    const chatHistories = {
+      rian: [{ sender: 'model', text: 'Halo! Kirana salah kasih nomor, ini boba Earl Grey kamu ya?' }],
+      siti: [{ sender: 'model', text: 'Eh kamu beneran dikirimin boba sama cowok ganteng?' }],
+      dimas: [{ sender: 'model', text: 'Wkwk si Rian emang suka ngaco kalau kirim makanan.' }],
+      ibu: [{ sender: 'model', text: 'Jangan lupa makan malam ya nak.' }],
+      maya: [{ sender: 'model', text: 'Halo, file pekerjaan kemarin sudah oke ya.' }]
     };
 
-    const SEED_HISTORY = {
-      rian:  [{ sender: 'model', text: 'Halo! Kirana salah kasih nomor, ini boba Earl Grey kamu ya?', ts: Date.now() - 7200000 }],
-      siti:  [{ sender: 'model', text: 'Eh kamu beneran dikirimin boba sama cowok ganteng?', ts: Date.now() - 5400000 }],
-      dimas: [{ sender: 'model', text: 'Wkwk si Rian emang suka ngaco kalau kirim makanan.', ts: Date.now() - 3600000 }],
-      ibu:   [{ sender: 'model', text: 'Jangan lupa makan malam ya nak.', ts: Date.now() - 1800000 }],
-      maya:  [{ sender: 'model', text: 'Halo, file pekerjaan kemarin sudah oke ya.', ts: Date.now() - 900000 }]
+    // INITIALIZATION
+    window.onload = function() {
+      renderCharacterList();
+      renderMissionSelector();
     };
 
-    /* ============================================================
-       FALLBACK LOKAL (hanya dipakai bila /api/chat tidak bisa dihubungi)
-       ============================================================ */
-    const REPLY_BANK = {
-      rian: {
-        rules: [
-          { k: ['boba', 'earl', 'minum', 'pesan'], r: ['Iya, itu boba Earl Grey pesanan temenku. Kamu yang di nomor 0812 kan? 😅', 'Nah itu dia! Maaf ya udah salah kirim.'] },
-          { k: ['maaf', 'salah', 'gapapa', 'gpp', 'santai'], r: ['Santai aja, justru beruntung bisa kenalan 😄', 'Gapapa kok, aku yang salah nomor duluan.'] },
-          { k: ['nama', 'kenalan', 'siapa'], r: ['Namaku Rian. Kamu?', 'Rian Pratama. Biasanya dipanggil Rian.'] },
-          { k: ['kopi', 'kafe', 'janji', 'ketemu'], r: ['Boleh tuh, Kopi Nanti enak tempatnya.', 'Aku setuju. Weekend ini gimana?'] },
-          { k: ['hai', 'halo', 'hi'], r: ['Halo! Wah cepat juga balasnya 😄', 'Hai juga! Baru selesai kerja nih.'] }
-        ],
-        fallback: ['Hmm gimana? Aku lagi di jalan nih.', 'Bentar ya aku baca dulu 😅']
-      },
-      siti:  { rules: [{ k: ['rian', 'boba'], r: ['Iya! Dia kirim boba ke kamu kan? Untung banget 🙄'] }], fallback: ['Cerita dong lebih detail 😆', 'Iyaa aku dengerin kok.'] },
-      dimas: { rules: [{ k: ['rian', 'boba'], r: ['Wkwk si Rian emang suka ngaco kalau kirim makanan.'] }], fallback: ['Hahaha bisa aja.', 'Oke siap!'] },
-      ibu:   { rules: [{ k: ['makan', 'malam'], r: ['Iya nak, jangan sampai telat makan ya.'] }], fallback: ['Yang penting kamu sehat selalu.', 'Jangan lupa istirahat.'] },
-      maya:  { rules: [{ k: ['file', 'kerja'], r: ['Iya, sudah aku cek semua. Aman kok.'] }], fallback: ['Oke, noted ya.', 'Siap, aku catat.'] }
-    };
+    // SWITCH SCREEN
+    function showScreen(screen) {
+      const chatsScreen = document.getElementById('screen-chats');
+      const roomScreen = document.getElementById('screen-room');
+      const btnBack = document.getElementById('btn-back');
 
-    /* ============================================================
-       UTIL
-       ============================================================ */
-    const pick = arr => arr[Math.floor(Math.random() * arr.length)];
-    const sleep = ms => new Promise(r => setTimeout(r, ms));
-    const fmtTime = ts => new Date(ts).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
-
-    function saveState() {
-      try {
-        localStorage.setItem(SAVE_KEY, JSON.stringify({
-          currentMission: state.currentMission,
-          progress: state.progress,
-          unread: state.unread,
-          histories: state.histories
-        }));
-      } catch (e) {}
-    }
-
-    function loadState() {
-      try {
-        const raw = localStorage.getItem(SAVE_KEY);
-        if (!raw) throw new Error('no save');
-        const d = JSON.parse(raw);
-        state.currentMission = d.currentMission || 1;
-        state.progress  = d.progress  || {};
-        state.unread    = d.unread    || {};
-        state.histories = d.histories || {};
-      } catch (e) {
-        state.currentMission = 1; state.progress = {}; state.unread = {}; state.histories = {};
-      }
-      Object.keys(CHARACTERS).forEach(id => {
-        if (!Array.isArray(state.histories[id]) || !state.histories[id].length) {
-          state.histories[id] = JSON.parse(JSON.stringify(SEED_HISTORY[id] || []));
-        }
-      });
-    }
-
-    /* ============================================================
-       TOAST
-       ============================================================ */
-    function showToast(text, icon = 'fa-circle-info', tone = 'amber') {
-      const tones = {
-        amber:   'border-amber-500/50 text-amber-200',
-        emerald: 'border-emerald-500/50 text-emerald-200',
-        rose:    'border-rose-500/50 text-rose-200'
-      };
-      const wrap = document.getElementById('toast-wrap');
-      const el = document.createElement('div');
-      el.className = `w-full max-w-[320px] bg-slate-900/95 backdrop-blur-xl border ${tones[tone] || tones.amber}
-                      text-[11px] rounded-2xl px-4 py-2.5 shadow-2xl flex items-center gap-2
-                      opacity-0 -translate-y-3 transition-all duration-300`;
-      el.innerHTML = `<i class="fa-solid ${icon} text-[11px]"></i><span class="leading-snug">${text}</span>`;
-      wrap.appendChild(el);
-      requestAnimationFrame(() => el.classList.add('toast-enter'));
-      setTimeout(() => { el.classList.remove('toast-enter'); setTimeout(() => el.remove(), 320); }, 2600);
-    }
-
-    /* ============================================================
-       INIT
-       ============================================================ */
-    window.onload = function () {
-      loadState();
-      updateClock();
-      setInterval(updateClock, 1000);
-      document.getElementById('screen-lock').classList.remove('hidden');
-      document.getElementById('screen-home').classList.add('hidden');
-      document.getElementById('screen-home').classList.remove('flex');
-      renderChatList();
-      updateMissionUI();
-      updateBadges();
-    };
-
-    function updateClock() {
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
-      document.getElementById('status-clock').innerText = timeStr;
-      document.getElementById('lock-clock').innerText = timeStr;
-      const options = { weekday: 'long', day: 'numeric', month: 'long' };
-      document.getElementById('lock-date').innerText = now.toLocaleDateString('id-ID', options);
-    }
-
-    /* ============================================================
-       NAVIGASI
-       ============================================================ */
-    function unlockPhone() {
-      document.getElementById('screen-lock').classList.add('hidden');
-      document.getElementById('screen-home').classList.remove('hidden');
-      document.getElementById('screen-home').classList.add('flex');
-    }
-
-    function goHome() {
-      ['screen-whatsapp', 'screen-twitter', 'screen-instagram', 'screen-tiktok', 'screen-chat-room']
-        .forEach(id => {
-          const el = document.getElementById(id);
-          if (el) { el.classList.add('hidden'); el.classList.remove('flex'); }
-        });
-      document.getElementById('screen-home').classList.remove('hidden');
-      document.getElementById('screen-home').classList.add('flex');
-      document.getElementById('chat-messages').innerHTML = '';
-      state.activeChat = null;
-      updateBadges();
-    }
-
-    function openApp(appName) {
-      document.getElementById('screen-home').classList.add('hidden');
-      document.getElementById('screen-home').classList.remove('flex');
-      const targetEl = document.getElementById(`screen-${appName}`);
-      if (targetEl) { targetEl.classList.remove('hidden'); targetEl.classList.add('flex'); }
-      if (appName === 'whatsapp') {
-        state.unread = {};
-        saveState();
-        updateBadges();
-        renderChatList();
+      if (screen === 'chats') {
+        chatsScreen.classList.remove('hidden');
+        roomScreen.classList.add('hidden');
+        btnBack.classList.add('hidden');
+        document.getElementById('header-title').textContent = "After Hours AU";
+        document.getElementById('header-sub').textContent = `${MISSIONS[currentMission].title}: ${MISSIONS[currentMission].desc}`;
+        activeCharId = null;
+        renderCharacterList();
+      } else if (screen === 'room') {
+        chatsScreen.classList.add('hidden');
+        roomScreen.classList.remove('hidden');
+        btnBack.classList.remove('hidden');
       }
     }
 
-    function toggleIslandExpand() {
-      const island = document.getElementById('dynamic-island');
-      const collapsedContent = document.getElementById('island-collapsed-content');
-      const expandedContent = document.getElementById('island-expanded-content');
-      if (state.islandExpanded) {
-        island.classList.remove('island-expanded'); island.classList.add('island-collapsed');
-        expandedContent.classList.add('hidden'); collapsedContent.classList.remove('hidden');
-        state.islandExpanded = false;
-      } else {
-        island.classList.remove('island-collapsed'); island.classList.add('island-expanded');
-        collapsedContent.classList.add('hidden'); expandedContent.classList.remove('hidden');
-        state.islandExpanded = true;
-      }
-    }
-
-    /* ============================================================
-       MISSION UI
-       ============================================================ */
-    function updateMissionUI() {
-      const m = MISSIONS[state.currentMission] || { title: 'Selesai', desc: 'Semua misi telah kamu tuntaskan! 🎉' };
-      const rule = MISSION_RULES[state.currentMission];
-      const done = state.progress[state.currentMission] || 0;
-      const need = rule ? rule.need : 0;
-      const pct  = rule ? Math.min(100, (done / need) * 100) : 100;
-
-      document.getElementById('island-mission-title').innerText = m.title;
-      document.getElementById('island-mission-badge').innerText = `${m.title} / 8`;
-      document.getElementById('island-mission-desc').innerText  = m.desc;
-      document.getElementById('lock-mission-text').innerText    = `${m.title}: ${m.desc}`;
-      document.getElementById('wa-mission-chip').innerText      = m.title;
-      document.getElementById('island-progress').style.width    = pct + '%';
-      document.getElementById('island-progress-label').innerText =
-        rule ? `${Math.min(done, need)} / ${need} pesan` : 'Tuntas';
-
-      renderChatList();
-    }
-
-    function updateBadges() {
-      const total = Object.values(state.unread).reduce((a, b) => a + b, 0);
-      const homeBadge = document.getElementById('wa-home-badge');
-      const dockBadge = document.getElementById('wa-dock-badge');
-      [homeBadge, dockBadge].forEach(b => {
-        if (!b) return;
-        if (total > 0) { b.classList.remove('hidden'); b.innerText = total > 9 ? '9+' : total; }
-        else b.classList.add('hidden');
-      });
-    }
-
-    /* ============================================================
-       CHAT LIST
-       ============================================================ */
-    function renderChatList() {
-      const container = document.getElementById('wa-chat-list');
-      if (!container) return;
+    // RENDER LIST KONTAK
+    function renderCharacterList() {
+      const container = document.getElementById('character-list');
       container.innerHTML = '';
 
       Object.values(CHARACTERS).forEach(char => {
-        const isUnlocked = state.currentMission >= char.unlockedAtMission;
-        const hist = state.histories[char.id] || [];
-        const lastMsg = hist.length ? hist[hist.length - 1].text : 'Belum ada pesan';
-        const unread = state.unread[char.id] || 0;
+        const isUnlocked = currentMission >= char.unlockedAt;
+        const lastMsg = chatHistories[char.id].slice(-1)[0]?.text || 'Belum ada pesan';
 
-        const item = document.createElement('div');
-        item.className = `p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-900/80 transition active:bg-gray-900 ${!isUnlocked ? 'opacity-40' : ''}`;
-        item.onclick = () => {
-          if (isUnlocked) openChatRoom(char.id);
-          else showToast(`${char.name} terbuka pada Misi ${char.unlockedAtMission}.`, 'fa-lock', 'rose');
+        const card = document.createElement('div');
+        card.className = `p-3.5 bg-[#181a22] border border-white/5 rounded-2xl flex items-center justify-between cursor-pointer transition hover:border-indigo-500/30 ${!isUnlocked ? 'opacity-40 cursor-not-allowed' : ''}`;
+
+        card.onclick = () => {
+          if (isUnlocked) {
+            openChatRoom(char.id);
+          } else {
+            alert(`Karakter ${char.name} belum bisa di-chat pada Misi ${currentMission}.`);
+          }
         };
-        item.innerHTML = `
-          <div class="flex items-center space-x-3 min-w-0">
-            <div class="relative shrink-0">
-              <img src="${char.avatar}" alt="${char.name}" class="w-11 h-11 rounded-full object-cover">
-              ${!isUnlocked ? `<div class="absolute inset-0 bg-black/75 rounded-full flex items-center justify-center text-xs text-amber-400"><i class="fa-solid fa-lock"></i></div>` : ''}
+
+        card.innerHTML = `
+          <div class="flex items-center space-x-3">
+            <div class="relative">
+              <img src="${char.avatar}" class="w-11 h-11 rounded-full object-cover">
+              ${!isUnlocked ? `<div class="absolute inset-0 bg-black/80 rounded-full flex items-center justify-center text-xs text-amber-400"><i class="fa-solid fa-lock"></i></div>` : ''}
             </div>
-            <div class="min-w-0">
-              <h3 class="text-xs font-bold text-white flex items-center gap-1.5">
-                ${char.name}
-                ${!isUnlocked ? `<span class="text-[8px] bg-red-900/50 text-red-300 px-1.5 py-0.5 rounded border border-red-700/50">Terkunci</span>` : ''}
-              </h3>
-              <p class="text-[11px] ${isUnlocked ? 'text-gray-400' : 'text-amber-500/80'} truncate max-w-[190px] mt-0.5">
-                ${isUnlocked ? lastMsg : `Terbuka di Misi ${char.unlockedAtMission}`}
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-xs font-bold text-white">${char.name}</h3>
+                <span class="text-[9px] bg-white/5 text-gray-400 px-1.5 py-0.5 rounded">${char.role}</span>
+              </div>
+              <p class="text-[11px] ${isUnlocked ? 'text-gray-400' : 'text-amber-500/80'} truncate max-w-[180px] mt-0.5">
+                ${isUnlocked ? lastMsg : 'Terkunci'}
               </p>
             </div>
           </div>
-          <div class="flex flex-col items-end gap-1 shrink-0 ml-2">
-            <span class="text-[9px] text-gray-500">${hist.length ? fmtTime(hist[hist.length - 1].ts || Date.now()) : ''}</span>
-            ${unread > 0 && isUnlocked
-              ? `<span class="min-w-[18px] h-[18px] px-1 bg-emerald-500 rounded-full text-[9px] font-bold text-black flex items-center justify-center">${unread}</span>`
-              : ''}
-          </div>
+          <i class="fa-solid fa-chevron-right text-xs text-gray-600"></i>
         `;
-        container.appendChild(item);
+
+        container.appendChild(card);
       });
     }
 
-    /* ============================================================
-       CHAT ROOM
-       ============================================================ */
+    // BUKA CHAT ROOM
     function openChatRoom(charId) {
-      state.activeChat = CHARACTERS[charId];
-      state.unread[charId] = 0;
-      saveState();
+      activeCharId = charId;
+      const char = CHARACTERS[charId];
 
-      document.getElementById('screen-whatsapp').classList.add('hidden');
-      document.getElementById('screen-whatsapp').classList.remove('flex');
-      document.getElementById('screen-chat-room').classList.remove('hidden');
-      document.getElementById('screen-chat-room').classList.add('flex');
+      document.getElementById('header-title').textContent = char.name;
+      document.getElementById('header-sub').textContent = `${char.role} • Online`;
 
-      document.getElementById('chat-header-name').innerText = state.activeChat.name;
-      document.getElementById('chat-header-avatar').src = state.activeChat.avatar;
-      document.getElementById('chat-header-status').innerText = 'Online';
-
+      showScreen('room');
       renderMessages();
-      updateBadges();
     }
 
-    function closeChatRoom() {
-      document.getElementById('screen-chat-room').classList.add('hidden');
-      document.getElementById('screen-chat-room').classList.remove('flex');
-      document.getElementById('screen-whatsapp').classList.remove('hidden');
-      document.getElementById('screen-whatsapp').classList.add('flex');
-      state.activeChat = null;
-      saveState();
-      renderChatList();
-      updateBadges();
-    }
-
-    function messageBubbleHTML(msg, isUser) {
-      return `
-        <div class="max-w-[78%] flex flex-col ${isUser ? 'items-end' : 'items-start'}">
-          <div class="px-3.5 py-2 rounded-2xl text-xs leading-relaxed ${isUser ? 'chat-bubble-user' : 'chat-bubble-model'} break-words">
-            ${escapeHTML(msg.text)}
-          </div>
-          <span class="text-[9px] text-gray-500 mt-1 px-1">${fmtTime(msg.ts || Date.now())}</span>
-        </div>`;
-    }
-
-    function escapeHTML(str) {
-      return String(str)
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-    }
-
+    // RENDER PESAN
     function renderMessages() {
-      const container = document.getElementById('chat-messages');
-      if (!container || !state.activeChat) return;
+      const container = document.getElementById('messages-container');
       container.innerHTML = '';
-      const history = state.histories[state.activeChat.id] || [];
+
+      const history = chatHistories[activeCharId] || [];
       history.forEach(msg => {
         const isUser = msg.sender === 'user';
-        const wrap = document.createElement('div');
-        wrap.className = `flex msg-pop ${isUser ? 'justify-end' : 'justify-start'}`;
-        wrap.innerHTML = messageBubbleHTML(msg, isUser);
-        container.appendChild(wrap);
+        const bubble = document.createElement('div');
+        bubble.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
+
+        bubble.innerHTML = `
+          <div class="max-w-[80%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed ${isUser ? 'chat-bubble-user' : 'chat-bubble-model'}">
+            ${msg.text}
+          </div>
+        `;
+        container.appendChild(bubble);
       });
+
       container.scrollTop = container.scrollHeight;
     }
 
-    function showTypingIndicator() {
-      const container = document.getElementById('chat-messages');
-      if (!container) return;
-      const el = document.createElement('div');
-      el.id = 'typing-indicator';
-      el.className = 'flex justify-start msg-pop';
-      el.innerHTML = `
-        <div class="chat-bubble-model px-3.5 py-2.5 rounded-2xl flex items-center gap-1">
-          <span class="typing-dot w-1.5 h-1.5 bg-gray-400 rounded-full inline-block"></span>
-          <span class="typing-dot w-1.5 h-1.5 bg-gray-400 rounded-full inline-block"></span>
-          <span class="typing-dot w-1.5 h-1.5 bg-gray-400 rounded-full inline-block"></span>
-        </div>`;
-      container.appendChild(el);
-      container.scrollTop = container.scrollHeight;
-    }
+    // HANDLER KIRIM PESAN REAL KE NEXT.JS / GROQ API
+    async function handleSend(e) {
+      e.preventDefault();
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      if (!text || !activeCharId) return;
 
-    function hideTypingIndicator() {
-      const el = document.getElementById('typing-indicator');
-      if (el) el.remove();
-    }
+      // Simpan pesan user
+      chatHistories[activeCharId].push({ sender: 'user', text: text });
+      input.value = '';
+      renderMessages();
 
-    /* ============================================================
-       FALLBACK LOKAL
-       ============================================================ */
-    function localReply(charId, userText) {
-      const bank = REPLY_BANK[charId] || REPLY_BANK.rian;
-      const t = (userText || '').toLowerCase();
-      for (const rule of bank.rules) {
-        if (rule.k.some(k => t.includes(k))) return pick(rule.r);
-      }
-      return pick(bank.fallback);
-    }
+      document.getElementById('header-sub').textContent = "sedang mengetik...";
 
-    /* ============================================================
-       API CALL → /api/chat (chat.js)
-       PENTING: history dikirim TANPA pesan user terbaru,
-       karena chat.js menambahkan userMessage secara terpisah.
-       ============================================================ */
-    async function getReply(charId, userText) {
       try {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 15000);
-
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          signal: controller.signal,
           body: JSON.stringify({
-            character: charId,
-            userMessage: userText,
-            history: state.histories[charId].slice(0, -1),
-            currentMission: state.currentMission
+            character: activeCharId,
+            userMessage: text,
+            history: chatHistories[activeCharId],
+            currentMission: currentMission
           })
         });
-        clearTimeout(timer);
-
-        if (!response.ok) throw new Error('HTTP ' + response.status);
 
         const data = await response.json();
-        if (!data || typeof data.reply !== 'string' || !data.reply.trim()) {
-          throw new Error('Empty reply');
-        }
-        return { text: data.reply.trim(), source: 'api' };
+        const replyText = data.reply || "Maaf, respon kosong.";
+
+        chatHistories[activeCharId].push({ sender: 'model', text: replyText });
+        document.getElementById('header-sub').textContent = `${CHARACTERS[activeCharId].role} • Online`;
+        renderMessages();
+
       } catch (err) {
-        // Fallback hanya jika jaringan/endpoint benar-benar gagal
-        await sleep(600 + Math.random() * 700);
-        return { text: localReply(charId, userText), source: 'offline' };
+        chatHistories[activeCharId].push({ sender: 'model', text: "Error: Tidak terhubung ke server." });
+        document.getElementById('header-sub').textContent = `${CHARACTERS[activeCharId].role} • Online`;
+        renderMessages();
       }
     }
 
-    /* ============================================================
-       KIRIM PESAN
-       ============================================================ */
-    let isSending = false;
-
-    async function sendMessage(e) {
-      e.preventDefault();
-      if (isSending || !state.activeChat) return;
-
-      const input = document.getElementById('chat-input');
-      const text = input.value.trim();
-      if (!text) return;
-
-      const charId = state.activeChat.id;
-
-      // 1) Tampilkan pesan user
-      state.histories[charId].push({ sender: 'user', text, ts: Date.now() });
-      input.value = '';
-      renderMessages();
-      saveState();
-
-      // 2) Progres misi
-      registerProgress(charId);
-
-      // 3) Minta balasan dari /api/chat
-      isSending = true;
-      document.getElementById('chat-send-btn').disabled = true;
-      document.getElementById('chat-header-status').innerText = 'Ketik pesan...';
-      showTypingIndicator();
-
-      const result = await getReply(charId, text);
-      hideTypingIndicator();
-
-      // 4) Simpan balasan
-      state.histories[charId].push({ sender: 'model', text: result.text, ts: Date.now() });
-
-      if (!state.activeChat || state.activeChat.id !== charId) {
-        state.unread[charId] = (state.unread[charId] || 0) + 1;
-        updateBadges();
-      }
-
-      document.getElementById('chat-header-status').innerText =
-        result.source === 'api' ? 'Online' : 'Online (offline mode)';
-      document.getElementById('chat-send-btn').disabled = false;
-      isSending = false;
-
-      renderMessages();
-      saveState();
-
-      if (result.source === 'offline') {
-        showToast('Tidak bisa hubungi API. Balasan lokal dipakai.', 'fa-wifi', 'rose');
-      }
+    // LOGIKA MODAL MISI
+    function toggleMissionModal() {
+      const modal = document.getElementById('mission-modal');
+      modal.classList.toggle('hidden');
     }
 
-    /* ============================================================
-       PROGRES MISI
-       ============================================================ */
-    function registerProgress(charId) {
-      const rule = MISSION_RULES[state.currentMission];
-      if (!rule || rule.char !== charId) return;
+    function renderMissionSelector() {
+      const container = document.getElementById('mission-selector-list');
+      container.innerHTML = '';
 
-      state.progress[state.currentMission] = (state.progress[state.currentMission] || 0) + 1;
+      Object.keys(MISSIONS).forEach(mNum => {
+        const btn = document.createElement('button');
+        btn.className = `w-full text-left p-2 rounded-xl text-xs border transition ${parseInt(mNum) === currentMission ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300 font-bold' : 'bg-white/5 border-transparent text-gray-400 hover:bg-white/10'}`;
+        btn.textContent = `Misi ${mNum}: ${MISSIONS[mNum].desc}`;
 
-      if (state.progress[state.currentMission] >= rule.need) {
-        completeCurrentMission();
-      } else {
-        updateMissionUI();
-        saveState();
-      }
-    }
+        btn.onclick = () => {
+          currentMission = parseInt(mNum);
+          document.getElementById('mission-badge').textContent = `Misi ${currentMission} / 8`;
+          document.getElementById('au-status-desc').textContent = MISSIONS[currentMission].desc;
+          toggleMissionModal();
+          renderCharacterList();
+        };
 
-    function completeCurrentMission() {
-      const finished = state.currentMission;
-      const unlockedBefore = Object.values(CHARACTERS)
-        .filter(c => c.unlockedAtMission <= finished)
-        .map(c => c.id);
-
-      if (state.currentMission < 8) {
-        state.currentMission += 1;
-        showToast(`${MISSIONS[finished].title} selesai! Lanjut ke ${MISSIONS[state.currentMission].title}.`, 'fa-circle-check', 'emerald');
-
-        Object.values(CHARACTERS)
-          .filter(c => c.unlockedAtMission === state.currentMission && !unlockedBefore.includes(c.id))
-          .forEach(c => {
-            setTimeout(() => showToast(`Kontak baru terbuka: ${c.name}`, 'fa-user-plus', 'emerald'), 700);
-          });
-      } else {
-        showToast('Semua misi telah selesai. Terima kasih sudah memainkan! 🎉', 'fa-trophy', 'amber');
-      }
-      saveState();
-      updateMissionUI();
-      updateBadges();
-    }
-
-    /* ============================================================
-       RESET
-       ============================================================ */
-    function resetProgress() {
-      if (!confirm('Reset semua progres, chat, dan misi?')) return;
-      try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
-      state.currentMission = 1;
-      state.progress = {}; state.unread = {}; state.histories = {};
-      Object.keys(CHARACTERS).forEach(id => {
-        state.histories[id] = JSON.parse(JSON.stringify(SEED_HISTORY[id] || []));
+        container.appendChild(btn);
       });
-      saveState();
-      updateMissionUI();
-      updateBadges();
-      showToast('Progres direset. Mulai dari Misi 1.', 'fa-rotate-left', 'rose');
     }
   </script>
 </body>
