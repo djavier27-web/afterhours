@@ -20,38 +20,39 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    body {
-      background-color: #030712;
+    html, body {
+      width: 100%;
+      height: 100%;
       margin: 0;
       padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      min-height: -webkit-fill-available;
+      background-color: #000;
       overflow: hidden;
     }
 
-    /* iPhone Frame Responsive */
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* iPhone Frame Full Responsive */
     .phone-container {
       position: relative;
-      width: 100vw;
-      height: 100vh;
-      height: -webkit-fill-available;
-      max-width: 410px;
-      max-height: 870px;
+      width: 100%;
+      height: 100%;
+      max-width: 430px;
       background-color: #000;
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      box-shadow: 0 0 50px rgba(99, 102, 241, 0.25), 0 25px 60px -15px rgba(0, 0, 0, 0.95);
     }
 
-    @media (min-height: 670px) and (min-width: 420px) {
+    @media (min-width: 500px) and (min-height: 700px) {
       .phone-container {
-        border-radius: 52px;
-        border: 10px solid #1f293d;
-        height: 94vh;
+        height: 92vh;
+        border-radius: 48px;
+        border: 8px solid #1f293d;
+        box-shadow: 0 0 50px rgba(99, 102, 241, 0.25), 0 25px 60px -15px rgba(0, 0, 0, 0.95);
       }
     }
 
@@ -71,15 +72,17 @@
       border-radius: 20px;
     }
     .island-expanded {
-      width: 340px;
-      height: 155px;
-      border-radius: 30px;
+      width: 320px;
+      height: 150px;
+      border-radius: 28px;
     }
 
     /* Screen Transitions */
     .app-screen {
       transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
       will-change: transform, opacity;
+      height: 100%;
+      width: 100%;
     }
 
     /* Chat Bubbles */
@@ -121,7 +124,7 @@
   <!-- MAIN IPHONE FRAME -->
   <div class="phone-container">
 
-    <!-- WALLPAPER -->
+    <!-- GLOBAL WALLPAPER -->
     <div id="wallpaper" class="absolute inset-0 bg-cover bg-center transition-all duration-500 z-0" style="background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop');"></div>
     <div class="absolute inset-0 bg-black/40 z-0 pointer-events-none"></div>
 
@@ -565,7 +568,7 @@
     let lockTimerSeconds = 0;
     let lockTimerInterval = null;
 
-    // CONFIG KARAKTER (DISESUAIKAN DENGAN BACKEND API)
+    // CONFIG KARAKTER (TERHUBUNG KE BACKEND GROQ)
     const CHARACTERS = {
       rian: { id: "rian", name: "Rian Pratama", avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200&auto=format&fit=crop", unlockedAtMission: 1, status: "Online" },
       dimas: { id: "dimas", name: "Dimas", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop", unlockedAtMission: 3, status: "Online" },
@@ -591,7 +594,7 @@
       MISSIONS[idx + 1] = m;
     });
 
-    // CHAT HISTORY (ARRAY FORMAT UNTUK BACKEND API)
+    // CHAT HISTORY
     const chatHistories = {
       rian: [{ sender: 'model', text: 'Halo! Sumpah maaf banget ya, boba Earl Grey tadi salah kirim ke rumah kamu. Kirana salah kasih nomor 😅' }],
       dimas: [{ sender: 'model', text: 'Bro, si Rian cerita gak soal martabak manis yang dikirim tadi? Hahaha' }],
@@ -877,7 +880,6 @@
       container.scrollTop = container.scrollHeight;
     }
 
-    // OPERASI KIRIM PESAN REAL - TERHUBUNG KE NEXT.JS API HANDLER
     async function sendMessage(e) {
       e.preventDefault();
       const input = document.getElementById('chat-input');
@@ -891,7 +893,6 @@
       document.getElementById('chat-header-status').innerText = "Ketik pesan...";
 
       try {
-        // Request dikirim ke API handler Next.js
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
