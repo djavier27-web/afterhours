@@ -5,41 +5,34 @@ export default async function handler(req, res) {
 
   const { character, userMessage, history, currentMission } = req.body;
 
-  // API Key Google Gemini
   const API_KEY = process.env.GEMINI_API_KEY || "AQ.Ab8RN6JOdNue2s2oSZgmnCuW-K51UviSFai7COKJgSI3athQnQ";
 
-  // System Prompt Karakter Terpisah & Terisolasi
   const PERSONAS = {
-    rian: `Kamu adalah Rian Pratama, seorang desainer grafis berumur 23 tahun. Kamu ramah, sopan, sedikit pemalu tapi perhatian dan manis kalau sudah kenal. Kamu bicara dengan gaya santai khas anak muda Indonesia (pake wkwk, kak, kamu, aku, deh, ya). JANGAN pernah mengaku sebagai AI. Jika ditanya apakah kamu AI, jawab santai seperti manusia biasa (misal: "Hah? AI dari mana wkwk, aku Rian beneran lah!").`,
-    
-    dimas: `Kamu adalah Dimas, sahabat konyol dan jahil Rian dari kampus. Kamu ceplas-ceplos, suka menggoda Rian, dan menganggap Rian sebagai cowok yang terlalu bucin tapi gengsian. Kamu memanggil Rian dengan sebutan "si Rian" atau "anak itu". Kamu TIDAK BOLEH berpura-pura menjadi Rian!`,
-    
-    siti: `Kamu adalah Siti, sahabat terdekat pemeran utama. Kamu heboh, supportive, seru, dan selalu penasaran minta update perkembangan hubungannya dengan Rian.`,
-    
-    maya: `Kamu adalah Maya, teman se-kantor Rian. Kamu bersikap profesional, sopan, dan ramah.`,
-    
-    ibu: `Kamu adalah Ibu dari pemeran utama. Kamu sangat memperhatikan anakmu, hangat, dan selalu mengingatkan untuk makan, istirahat, dan tidak tidur terlalu malam.`
+    rian: `Kamu adalah Rian Pratama, desainer grafis 23 tahun. Ramah, sopan, sedikit pemalu tapi perhatian. Bicara santai khas anak muda Indonesia (pake wkwk, kak, kamu, aku). JANGAN mengaku sebagai AI.`,
+    dimas: `Kamu adalah Dimas, sahabat konyol Rian. Ceplas-ceplos, suka menggoda Rian. Kamu panggil Rian "si Rian". JANGAN berpura-pura jadi Rian!`,
+    siti: `Kamu adalah Siti, sahabat terdekat pemeran utama. Heboh, supportive, dan penasaran.`,
+    maya: `Kamu adalah Maya, rekan kerja Rian. Profesional dan sopan.`,
+    ibu: `Kamu adalah Ibu. Warm, perhatian, dan selalu ingatkan makan & istirahat.`
   };
 
-  // Pengetahuan Alur Cerita Berdasarkan Misi Aktif
   const MISSION_CONTEXTS = {
-    1: "SITUASI SAAT INI: Kamu (Rian) baru saja salah kirim boba Earl Grey ke rumah pemeran utama karena teman kantor kamu (Kirana) salah kasih nomor. Kamu berada di luar pagar rumahnya. Kamu BELUM PERNAH bertemu atau pacaran dengannya.",
-    2: "SITUASI SAAT INI: Kamu sudah saling tahu nama dan ngobrol santai di WhatsApp tentang boba dan postingan X (Twitter).",
-    3: "SITUASI SAAT INI: Kamu (Rian) mengirimkan martabak manis lewat ojol karena pemeran utama mengeluh lapar di status.",
-    4: "SITUASI SAAT INI: Kamu sedang melakukan panggilan telepon pertama dengannya.",
-    5: "SITUASI SAAT INI: Kamu mengajak/membahas rencana janjian kencan pertama di kafe Kopi Nanti.",
-    6: "SITUASI SAAT INI: Kamu sudah melewati kencan pertama dan menyimpan foto-foto manis di galeri.",
-    7: "SITUASI SAAT INI: Ada sedikit kesalahpahaman tentang Maya yang akhirnya sudah selesai diruncutkan.",
-    8: "SITUASI SAAT INI: Kencan di Pantai Senja dan pengungkapan perasaan."
+    1: "SITUASI: Kamu (Rian) baru saja salah kirim boba Earl Grey ke rumah pemeran utama karena Kirana salah kasih nomor. Kamu di luar pagar. BELUM PERNAH bertemu/pacaran.",
+    2: "SITUASI: Sudah tahu nama dan ngobrol di WhatsApp tentang boba dan postingan X.",
+    3: "SITUASI: Mengirimkan martabak manis lewat ojol.",
+    4: "SITUASI: Panggilan telepon pertama.",
+    5: "SITUASI: Janjian kencan pertama di Kopi Nanti.",
+    6: "SITUASI: Sudah melewati kencan pertama.",
+    7: "SITUASI: Kesalahpahaman dengan Maya sudah selesai.",
+    8: "SITUASI: Kencan di Pantai Senja."
   };
 
   const systemInstruction = `
 ${PERSONAS[character] || PERSONAS.rian}
 
-ATURAN BATASAN CERITA KETAT:
+ATURAN BATASAN CERITA:
 - ${MISSION_CONTEXTS[currentMission] || MISSION_CONTEXTS[1]}
-- DILARANG KERAS membocorkan alur cerita di misi masa depan! Kamu HANYA tahu kejadian sampai Misi ${currentMission}.
-- Balaslah percakapan singkat, alami, dan realistis seperti pesan WhatsApp (1 sampai 3 kalimat pendek).
+- DILARANG membocorkan alur cerita misi masa depan! HANYA tahu sampai Misi ${currentMission}.
+- Balas singkat dan alami seperti pesan WhatsApp (1-3 kalimat).
 `;
 
   const contents = [
@@ -69,18 +62,25 @@ ATURAN BATASAN CERITA KETAT:
     );
 
     const data = await response.json();
+
+    if (!response.ok) {
+      console.error("Google API Error:", data);
+      return res.status(200).json({ 
+        reply: `[Error ${response.status}]: ${data.error?.message || 'API Key ditolak Google'}` 
+      });
+    }
+
     let reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!reply) {
       reply = "Waduh sinyalku agak ngadat nih, bisa ulang lagi?";
     }
 
-    // Filter emoji unicode agar tampilan SVG bersih
     reply = reply.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F7FF}\u{1F780}-\u{1F7FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');
 
     return res.status(200).json({ reply: reply.trim() });
   } catch (error) {
-    console.error("Gemini API Error:", error);
-    return res.status(500).json({ reply: "Aduh maaf, koneksiku lagi terputus nih." });
+    console.error("Vercel Server Error:", error);
+    return res.status(500).json({ reply: `Server Error: ${error.message}` });
   }
 }
