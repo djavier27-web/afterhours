@@ -1,0 +1,11 @@
+{
+  "name": "iphone-au-romance",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "serve public"
+  },
+  "dependencies": {
+    "serve": "^14.2.0"
+  }
+}
