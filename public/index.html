@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>After Hours - iOS AU Simulator</title>
+  <title>After Hours - Mobile AU</title>
 
   <!-- Tailwind CSS & Font Awesome -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -18,6 +18,7 @@
       -webkit-tap-highlight-color: transparent;
     }
 
+    /* Murni Full Screen untuk HP */
     html, body {
       width: 100%;
       height: 100%;
@@ -29,38 +30,19 @@
       overflow: hidden;
     }
 
-    body {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* iOS Screen Shell */
-    .ios-shell {
-      position: relative;
+    .mobile-app {
       width: 100%;
       height: 100%;
       height: 100dvh;
-      max-width: 430px;
-      background-color: #000000;
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      background-color: #000000;
     }
 
-    @media (min-width: 500px) and (min-height: 650px) {
-      .ios-shell {
-        height: 92vh;
-        border-radius: 48px;
-        border: 8px solid #1c1c1e;
-        box-shadow: 0 0 50px rgba(0,0,0,0.9);
-      }
-    }
+    .custom-scroll::-webkit-scrollbar { width: 0px; } /* Sembunyikan scrollbar di HP */
 
-    .custom-scroll::-webkit-scrollbar { width: 3px; }
-    .custom-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
-
-    /* Bubble Chat iOS Style */
+    /* Bubble Chat iOS */
     .bubble-user {
       background: #007aff;
       color: #ffffff;
@@ -75,80 +57,80 @@
 </head>
 <body>
 
-  <div class="ios-shell">
+  <div class="mobile-app">
 
-    <!-- iOS STATUS BAR & DYNAMIC ISLAND -->
-    <header class="w-full pt-3 pb-2 px-6 bg-black text-white flex justify-between items-center z-50 shrink-0">
-      <span id="status-clock" class="text-xs font-semibold">12:00</span>
+    <!-- STATUS BAR & BANNER MISI DYNAMIC -->
+    <header class="w-full pt-2 pb-2 px-4 bg-black border-b border-zinc-800 flex justify-between items-center z-50 shrink-0">
+      <span id="status-clock" class="text-xs font-bold">12:00</span>
       
-      <!-- Dynamic Island Banner -->
-      <div onclick="toggleMissionModal()" class="cursor-pointer bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-full flex items-center space-x-2 active:scale-95 transition">
+      <!-- Banner Misi -->
+      <button onclick="toggleMissionModal()" class="bg-zinc-900 border border-zinc-700/80 px-3 py-1 rounded-full flex items-center space-x-1.5 active:scale-95 transition">
         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
         <span id="island-text" class="text-[10px] font-bold text-amber-400">Ch.1 - Misi 1/25</span>
-      </div>
+      </button>
 
-      <div class="flex items-center space-x-1.5 text-xs">
+      <div class="flex items-center space-x-1.5 text-xs text-zinc-400">
         <i class="fa-solid fa-wifi text-[10px]"></i>
         <i class="fa-solid fa-battery-full text-[11px]"></i>
       </div>
     </header>
 
-    <!-- CONTENT BODY CONTAINER -->
+    <!-- KONTEN APLIKASI FULL HP -->
     <main class="relative flex-1 w-full h-full overflow-hidden flex flex-col">
 
-      <!-- TAB 1: WHATSAPP (PESAN MASUK) -->
+      <!-- TAB 1: WHATSAPP (PESAN) -->
       <section id="tab-wa" class="w-full h-full flex flex-col overflow-hidden bg-black">
-        <div class="px-5 py-3 border-b border-zinc-800/80 flex justify-between items-center shrink-0">
+        <div class="px-4 py-3 border-b border-zinc-800 flex justify-between items-center shrink-0">
           <h1 class="text-lg font-bold text-white">Pesan</h1>
-          <button onclick="toggleMissionModal()" class="text-xs text-indigo-400 font-semibold bg-indigo-500/10 px-2.5 py-1 rounded-full border border-indigo-500/20">
+          <button onclick="toggleMissionModal()" class="text-xs text-indigo-400 font-semibold bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
             Log Misi
           </button>
         </div>
 
-        <!-- Notification Banner -->
-        <div id="mission-banner" class="m-4 p-3.5 bg-zinc-900/80 border border-zinc-800 rounded-2xl shrink-0">
+        <!-- Info Misi -->
+        <div class="m-3 p-3 bg-zinc-900 border border-zinc-800 rounded-2xl shrink-0">
           <div class="flex justify-between items-center mb-1">
-            <span id="chapter-label" class="text-[9px] font-bold text-amber-400 uppercase tracking-wider">CHAPTER 1 - MISI 1</span>
-            <span id="ending-tracker" class="text-[9px] text-pink-400 font-semibold">Affinity: 0%</span>
+            <span id="chapter-label" class="text-[10px] font-bold text-amber-400 uppercase">CHAPTER 1 - MISI 1</span>
+            <span id="ending-tracker" class="text-[10px] text-pink-400 font-semibold">Love Meter: 0%</span>
           </div>
           <p id="mission-desc" class="text-xs text-zinc-300 leading-snug">
             Tunggu Rian mengirimkan pesan awal mengenai boba Earl Grey.
           </p>
         </div>
 
-        <!-- Daftar Kontak Chat (Urutan naik otomatis jika ada chat baru) -->
-        <div class="flex-1 overflow-y-auto custom-scroll px-4 space-y-2" id="chat-list">
+        <!-- Daftar Chat (Otomatis posisi teratas jika ada chat baru) -->
+        <div class="flex-1 overflow-y-auto custom-scroll px-3 space-y-2" id="chat-list">
         </div>
       </section>
 
-      <!-- CHAT ROOM (TIDAK AKAN NGEBUG / TERPOTONG) -->
+      <!-- TAB RUANG CHAT (FULL SCREEN HP, INPUT TERKUNCI DI BAWAH) -->
       <section id="tab-room" class="w-full h-full hidden flex-col overflow-hidden bg-zinc-950">
-        <!-- Room Sub Header -->
-        <div class="px-4 py-2.5 bg-zinc-900 border-b border-zinc-800 flex items-center justify-between shrink-0">
-          <div class="flex items-center space-x-3">
+        <!-- Sub Header -->
+        <div class="px-3 py-2.5 bg-zinc-900 border-b border-zinc-800 flex items-center justify-between shrink-0">
+          <div class="flex items-center space-x-2">
             <button onclick="showTab('wa')" class="text-indigo-400 text-sm font-semibold flex items-center gap-1">
               <i class="fa-solid fa-chevron-left text-xs"></i> Pesan
             </button>
             <div class="flex items-center space-x-2">
               <img id="room-avatar" class="w-8 h-8 rounded-full object-cover" src="" />
               <div>
-                <h3 id="room-name" class="text-xs font-bold text-white leading-tight">Name</h3>
+                <h3 id="room-name" class="text-xs font-bold text-white leading-tight">Nama</h3>
                 <p id="room-status" class="text-[9px] text-emerald-400">Online</p>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Messages Viewport -->
-        <div id="messages-container" class="flex-1 overflow-y-auto custom-scroll p-4 space-y-3">
+        <!-- Container Pesan -->
+        <div id="messages-container" class="flex-1 overflow-y-auto custom-scroll p-3 space-y-3">
         </div>
 
-        <!-- Input Bar (Selalu Terkunci di Bawah) -->
-        <form id="chat-form" onsubmit="handleSend(event)" class="p-3 bg-zinc-900 border-t border-zinc-800 flex items-center space-x-2 shrink-0">
+        <!-- Input Bar (Pas di Layar HP) -->
+        <form id="chat-form" onsubmit="handleSend(event)" class="p-2.5 bg-zinc-900 border-t border-zinc-800 flex items-center space-x-2 shrink-0">
           <input 
             id="chat-input" 
             type="text" 
-            placeholder="Ketik balasan..." 
+            placeholder="Ketik pesan..." 
             autocomplete="off"
             class="flex-1 bg-zinc-800 text-white text-xs rounded-full px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder-zinc-500 border border-zinc-700/50"
           />
@@ -158,10 +140,10 @@
         </form>
       </section>
 
-      <!-- TAB 2: INSTAGRAM -->
-      <section id="tab-ig" class="w-full h-full hidden flex-col overflow-hidden bg-black p-4">
-        <h2 class="text-sm font-bold text-white mb-3">Instagram Feed</h2>
-        <div class="space-y-4 overflow-y-auto custom-scroll flex-1" id="ig-feed">
+      <!-- TAB INSTAGRAM -->
+      <section id="tab-ig" class="w-full h-full hidden flex-col overflow-hidden bg-black p-3">
+        <h2 class="text-sm font-bold text-white mb-2">Instagram</h2>
+        <div class="space-y-3 overflow-y-auto custom-scroll flex-1">
           <div class="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
             <div class="p-3 flex items-center space-x-2">
               <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200&auto=format&fit=crop" class="w-7 h-7 rounded-full object-cover">
@@ -169,15 +151,15 @@
             </div>
             <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=600&auto=format&fit=crop" class="w-full aspect-square object-cover">
             <div class="p-3 text-xs text-zinc-300">
-              <span class="font-bold text-white">rianprtm</span> Kopi sore setelah salah kirim boba ☕✨
+              <span class="font-bold text-white">rianprtm</span> Kopi sore sesudah salah kirim boba ☕✨
             </div>
           </div>
         </div>
       </section>
 
-      <!-- TAB 3: TIKTOK -->
-      <section id="tab-tiktok" class="w-full h-full hidden flex-col overflow-hidden bg-black p-4">
-        <h2 class="text-sm font-bold text-white mb-3">TikTok</h2>
+      <!-- TAB TIKTOK -->
+      <section id="tab-tiktok" class="w-full h-full hidden flex-col overflow-hidden bg-black p-3">
+        <h2 class="text-sm font-bold text-white mb-2">TikTok</h2>
         <div class="flex-1 bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex flex-col justify-end bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1558857563-b371033873b8?q=80&w=400&auto=format&fit=crop');">
           <div class="bg-black/60 backdrop-blur-md p-3 rounded-xl">
             <h4 class="text-xs font-bold text-white">@rianprtm</h4>
@@ -186,11 +168,11 @@
         </div>
       </section>
 
-      <!-- TAB 4: X (TWITTER) -->
-      <section id="tab-x" class="w-full h-full hidden flex-col overflow-hidden bg-black p-4">
-        <h2 class="text-sm font-bold text-white mb-3">Linimasa X</h2>
+      <!-- TAB X / TWITTER -->
+      <section id="tab-x" class="w-full h-full hidden flex-col overflow-hidden bg-black p-3">
+        <h2 class="text-sm font-bold text-white mb-2">Linimasa X</h2>
         <div class="space-y-3 overflow-y-auto custom-scroll flex-1">
-          <div class="p-3.5 bg-zinc-900 border border-zinc-800 rounded-2xl">
+          <div class="p-3 bg-zinc-900 border border-zinc-800 rounded-2xl">
             <div class="flex items-center space-x-2 mb-1.5">
               <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200&auto=format&fit=crop" class="w-7 h-7 rounded-full object-cover">
               <div>
@@ -205,8 +187,8 @@
 
     </main>
 
-    <!-- iOS FOOTER DOCK (NAVBAR UTAMA) -->
-    <nav id="bottom-dock" class="w-full py-2 px-6 bg-zinc-950 border-t border-zinc-800/80 flex justify-around items-center shrink-0 z-40">
+    <!-- NAV BAR BANYAK APLIKASI DI BAWAH HP -->
+    <nav class="w-full py-2 px-4 bg-zinc-950 border-t border-zinc-800 flex justify-around items-center shrink-0 z-40">
       <button onclick="showTab('wa')" id="nav-wa" class="flex flex-col items-center gap-1 text-indigo-400 transition">
         <i class="fa-solid fa-comment text-base"></i>
         <span class="text-[9px] font-bold">WA</span>
@@ -225,23 +207,23 @@
       </button>
     </nav>
 
-    <!-- MODAL MISI & CHAPTER (10 CHAPTER x 25 MISI) -->
-    <div id="mission-modal" class="hidden absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+    <!-- MODAL 10 CHAPTER X 25 MISI & 5 ENDING -->
+    <div id="mission-modal" class="hidden absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 w-full max-w-xs space-y-4">
         <div class="flex justify-between items-center border-b border-zinc-800 pb-2">
-          <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider">NAVIGASI ALUR CERITA</h3>
+          <h3 class="text-xs font-bold text-amber-400 uppercase">NAVIGASI ALUR CERITA</h3>
           <button onclick="toggleMissionModal()" class="text-zinc-400 text-xs"><i class="fa-solid fa-xmark"></i></button>
         </div>
 
         <div class="space-y-3">
           <div>
-            <label class="text-[10px] text-zinc-400 block mb-1">Pilih Chapter (1 - 10)</label>
+            <label class="text-[10px] text-zinc-400 block mb-1">Chapter (1 - 10)</label>
             <select id="chapter-select" onchange="changeChapter(this.value)" class="w-full bg-zinc-800 text-white text-xs p-2 rounded-xl border border-zinc-700">
             </select>
           </div>
 
           <div>
-            <label class="text-[10px] text-zinc-400 block mb-1">Pilih Misi (1 - 25)</label>
+            <label class="text-[10px] text-zinc-400 block mb-1">Misi (1 - 25)</label>
             <select id="mission-select" onchange="changeMission(this.value)" class="w-full bg-zinc-800 text-white text-xs p-2 rounded-xl border border-zinc-700">
             </select>
           </div>
@@ -263,7 +245,6 @@
   </div>
 
   <script>
-    // GAME ENGINE STATE
     let currentChapter = 1;
     let currentMission = 1;
     let activeCharId = null;
@@ -277,7 +258,6 @@
       maya: { id: "maya", name: "Maya", role: "Rekan Kerja", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop", unlockedAtCh: 2, unlockedAtM: 1 }
     };
 
-    // CHAT HISTORY ARRAY DEFAULTS
     const chatHistories = {
       rian: [],
       siti: [{ sender: 'model', text: 'Sist! Katanya ada cowok yang salah kirim boba ke rumah lo?' }],
@@ -286,7 +266,7 @@
       maya: [{ sender: 'model', text: 'Halo, file desain kemarin sudah dikirim ya.' }]
     };
 
-    // FITUR AI NGECHAT DULUAN SESUAI MISI
+    // AI NGECHAT DULUAN SESUAI MISI
     const AUTO_FIRST_MESSAGES = {
       1: { char: 'rian', text: 'Halo! Kirana salah kasih nomor, ini boba Earl Grey kamu ya?' },
       2: { char: 'rian', text: 'Btw makasih ya boba-nya tadi udah mau diterima 😅' },
@@ -309,7 +289,6 @@
       document.getElementById('status-clock').textContent = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
     }
 
-    // AI NGECHAT DULUAN SAAT MISI TERTENTU
     function triggerAutoChat() {
       const autoMsg = AUTO_FIRST_MESSAGES[currentMission];
       if (autoMsg) {
@@ -320,7 +299,6 @@
       }
     }
 
-    // PINDAH TAB NAVIGASI
     function showTab(tabName) {
       const tabs = ['wa', 'ig', 'tiktok', 'x', 'room'];
       tabs.forEach(t => {
@@ -344,18 +322,15 @@
       }
     }
 
-    // RENDER DAFTAR CHAT & POSISI NAIK OTOMATIS KE PUNGGUNG PALING ATAS
+    // POSITIONING CHAT BARU OTOMATIS PALING ATAS
     function renderChatList() {
       const container = document.getElementById('chat-list');
       container.innerHTML = '';
 
-      // Sort Karakter berdasarkan pesan terbaru
       const sortedChars = Object.values(CHARACTERS).sort((a, b) => {
-        const histA = chatHistories[a.id];
-        const histB = chatHistories[b.id];
-        if (histA.length === 0) return 1;
-        if (histB.length === 0) return -1;
-        return 0; // Menjaga urutan posisi teratas untuk chat aktif
+        if (a.id === activeCharId) return -1;
+        if (b.id === activeCharId) return 1;
+        return 0;
       });
 
       sortedChars.forEach(char => {
@@ -364,7 +339,7 @@
         const lastMsg = chatHistories[char.id].slice(-1)[0]?.text || 'Belum ada pesan';
 
         const card = document.createElement('div');
-        card.className = `p-3 bg-zinc-900/90 border border-zinc-800/80 rounded-2xl flex items-center justify-between cursor-pointer transition hover:bg-zinc-800 ${!isUnlocked ? 'opacity-40 cursor-not-allowed' : ''}`;
+        card.className = `p-3 bg-zinc-900 border border-zinc-800 rounded-2xl flex items-center justify-between cursor-pointer transition active:scale-98 ${!isUnlocked ? 'opacity-40 cursor-not-allowed' : ''}`;
 
         card.onclick = () => {
           if (isUnlocked) openChatRoom(char.id);
@@ -394,7 +369,6 @@
       });
     }
 
-    // RUANG OBROLAN (ROOM)
     function openChatRoom(charId) {
       activeCharId = charId;
       const char = CHARACTERS[charId];
@@ -427,19 +401,16 @@
       container.scrollTop = container.scrollHeight;
     }
 
-    // SINKRONISASI PENGIRIMAN PESAN KE BACKEND API GROQ
+    // TERHUBUNG DENGAN API GROQ NEXT.JS
     async function handleSend(e) {
       e.preventDefault();
       const input = document.getElementById('chat-input');
       const text = input.value.trim();
       if (!text || !activeCharId) return;
 
-      // Masukkan pesan user ke riwayat
       chatHistories[activeCharId].push({ sender: 'user', text: text });
       input.value = '';
       renderMessages();
-
-      // Naikkan posisi chat ini ke paling atas di tab utama
       renderChatList();
 
       document.getElementById('room-status').textContent = "sedang mengetik...";
@@ -463,18 +434,16 @@
         document.getElementById('room-status').textContent = "Online";
         renderMessages();
 
-        // Naikkan skor affinity secara bertahap
         affinityScore = Math.min(100, affinityScore + 2);
-        document.getElementById('ending-tracker').textContent = `Affinity: ${affinityScore}%`;
+        document.getElementById('ending-tracker').textContent = `Love Meter: ${affinityScore}%`;
 
       } catch (err) {
-        chatHistories[activeCharId].push({ sender: 'model', text: "Error: Tidak terhubung ke server." });
+        chatHistories[activeCharId].push({ sender: 'model', text: "Gagal terhubung ke server." });
         document.getElementById('room-status').textContent = "Online";
         renderMessages();
       }
     }
 
-    // MODAL NAVIGASI 10 CHAPTER X 25 MISI
     function toggleMissionModal() {
       document.getElementById('mission-modal').classList.toggle('hidden');
     }
