@@ -1,4 +1,3 @@
-
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({
@@ -6,13 +5,8 @@ export default async function handler(req, res) {
     });
   }
 
-  const apiKey = process.env.GROQ_API_KEY; "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"
-
-  if (!apiKey) {
-    return res.status(500).json({
-      error: "GROQ_API_KEY belum diatur di Vercel."
-    });
-  }
+  // API Key diisi langsung di sini
+  const apiKey = "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";
 
   const {
     character,
