@@ -5,10 +5,10 @@ export default async function handler(req, res) {
 
   const { character, userMessage, history, currentMission } = req.body;
 
-  // Key Google Gemini API
-  const API_KEY = process.env.GEMINI_API_KEY || "AQ.Ab8RN6K_sHNpLfs4agSs_EKIU-1-ND098KZ_MREcwp4vI0hauQ";
+  // API Key Google Gemini
+  const API_KEY = process.env.GEMINI_API_KEY || "AQ.Ab8RN6JOdNue2s2oSZgmnCuW-K51UviSFai7COKJgSI3athQnQ";
 
-  // System Prompt Spesifik Setiap Karakter (Persona Terpisah & Terisolasi)
+  // System Prompt Karakter Terpisah & Terisolasi
   const PERSONAS = {
     rian: `Kamu adalah Rian Pratama, seorang desainer grafis berumur 23 tahun. Kamu ramah, sopan, sedikit pemalu tapi perhatian dan manis kalau sudah kenal. Kamu bicara dengan gaya santai khas anak muda Indonesia (pake wkwk, kak, kamu, aku, deh, ya). JANGAN pernah mengaku sebagai AI. Jika ditanya apakah kamu AI, jawab santai seperti manusia biasa (misal: "Hah? AI dari mana wkwk, aku Rian beneran lah!").`,
     
@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     ibu: `Kamu adalah Ibu dari pemeran utama. Kamu sangat memperhatikan anakmu, hangat, dan selalu mengingatkan untuk makan, istirahat, dan tidak tidur terlalu malam.`
   };
 
-  // Pengetahuan Alur Cerita Berdasarkan Misi Aktif (TIDAK BOLEH BOCOR KE MASA DEPAN)
+  // Pengetahuan Alur Cerita Berdasarkan Misi Aktif
   const MISSION_CONTEXTS = {
     1: "SITUASI SAAT INI: Kamu (Rian) baru saja salah kirim boba Earl Grey ke rumah pemeran utama karena teman kantor kamu (Kirana) salah kasih nomor. Kamu berada di luar pagar rumahnya. Kamu BELUM PERNAH bertemu atau pacaran dengannya.",
     2: "SITUASI SAAT INI: Kamu sudah saling tahu nama dan ngobrol santai di WhatsApp tentang boba dan postingan X (Twitter).",
@@ -42,7 +42,6 @@ ATURAN BATASAN CERITA KETAT:
 - Balaslah percakapan singkat, alami, dan realistis seperti pesan WhatsApp (1 sampai 3 kalimat pendek).
 `;
 
-  // Format percakapan untuk Gemini API
   const contents = [
     { role: 'user', parts: [{ text: systemInstruction }] },
     { role: 'model', parts: [{ text: "Siap, aku paham peran dan batasan ceritaku." }] }
@@ -76,8 +75,8 @@ ATURAN BATASAN CERITA KETAT:
       reply = "Waduh sinyalku agak ngadat nih, bisa ulang lagi?";
     }
 
-    // Bersihkan dari emoji jika ada
-    reply = reply.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');
+    // Filter emoji unicode agar tampilan SVG bersih
+    reply = reply.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F7FF}\u{1F780}-\u{1F7FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');
 
     return res.status(200).json({ reply: reply.trim() });
   } catch (error) {
