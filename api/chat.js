@@ -1,84 +1,176 @@
+
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== "POST") {
+    return res.status(405).json({
+      error: "Method not allowed"
+    });
   }
 
-  const { character, userMessage, history, currentMission } = req.body;
+  const apiKey = process.env.GROQ_API_KEY; "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"
 
-  // API Key Groq
-  const GROQ_API_KEY = process.env.GROQ_API_KEY || "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";
+  if (!apiKey) {
+    return res.status(500).json({
+      error: "GROQ_API_KEY belum diatur di Vercel."
+    });
+  }
 
-  const PERSONAS = {
-    rian: `Kamu adalah Rian Pratama, desainer grafis 23 tahun. Ramah, sopan, sedikit pemalu tapi perhatian. Bicara santai khas anak muda Indonesia (pake wkwk, kak, kamu, aku). JANGAN mengaku sebagai AI.`,
-    dimas: `Kamu adalah Dimas, sahabat konyol Rian. Ceplas-ceplos, suka menggoda Rian. Kamu panggil Rian "si Rian". JANGAN berpura-pura jadi Rian!`,
-    siti: `Kamu adalah Siti, sahabat terdekat pemeran utama. Heboh, supportive, dan penasaran.`,
-    maya: `Kamu adalah Maya, rekan kerja Rian. Profesional dan sopan.`,
-    ibu: `Kamu adalah Ibu. Warm, perhatian, dan selalu ingatkan makan & istirahat.`
+  const {
+    character,
+    userMessage,
+    history,
+    currentMission
+  } = req.body || {};
+
+  const personas = {
+    rian: `Kamu adalah Rian Pratama, desainer grafis berusia 23 tahun.
+Ramah, sopan, sedikit pemalu tetapi perhatian.
+Berbicara santai dalam bahasa Indonesia dengan gaya chat
+WhatsApp, menggunakan aku, kamu, kak, dan wkwk sewajarnya.
+Jangan mengaku sebagai AI.`,
+
+    dimas: `Kamu adalah Dimas, sahabat Rian.
+Ceplas-ceplos, humoris, suka menggoda Rian dan memanggilnya
+"si Rian". Kamu bukan Rian. Jangan mengambil identitas Rian.`,
+
+    siti: `Kamu adalah Siti, sahabat dekat pemeran utama.
+Heboh, suportif, penasaran, dan suka membicarakan kejadian baru.`,
+
+    maya: `Kamu adalah Maya, rekan kerja Rian.
+Profesional, sopan, tenang, dan tidak mudah salah paham.`,
+
+    ibu: `Kamu adalah Ibu, sosok yang hangat dan perhatian.
+Kamu suka mengingatkan untuk makan dan beristirahat.`
   };
 
-  const MISSION_CONTEXTS = {
-    1: "SITUASI: Kamu (Rian) baru saja salah kirim boba Earl Grey ke rumah pemeran utama karena Kirana salah kasih nomor. Kamu di luar pagar. BELUM PERNAH bertemu/pacaran.",
-    2: "SITUASI: Sudah tahu nama dan ngobrol di WhatsApp tentang boba dan postingan X.",
-    3: "SITUASI: Mengirimkan martabak manis lewat ojol.",
-    4: "SITUASI: Panggilan telepon pertama.",
-    5: "SITUASI: Janjian kencan pertama di Kopi Nanti.",
-    6: "SITUASI: Sudah melewati kencan pertama.",
-    7: "SITUASI: Kesalahpahaman dengan Maya sudah selesai.",
-    8: "SITUASI: Kencan di Pantai Senja."
+  const missions = {
+    1: `Rian salah mengirim boba Earl Grey karena Kirana
+salah memberikan nomor. Rian sedang berada di depan pagar.
+Mereka belum pernah bertemu sebelumnya dan belum berpacaran.`,
+
+    2: `Rian dan pemeran utama sudah mengetahui nama masing-masing
+dan mengobrol di WhatsApp mengenai boba dan postingan X.`,
+
+    3: `Rian mengirimkan martabak manis melalui ojek online
+sebagai kejutan kecil.`,
+
+    4: `Rian dan pemeran utama melakukan panggilan telepon
+untuk pertama kalinya.`,
+
+    5: `Rian dan pemeran utama memiliki janji kencan pertama
+di kedai Kopi Nanti.`,
+
+    6: `Rian dan pemeran utama sudah melewati kencan pertama
+dan kini melanjutkan komunikasi mereka.`,
+
+    7: `Kesalahpahaman mengenai Maya sudah diselesaikan.
+Jangan membuat konflik lama muncul tanpa alasan.`,
+
+    8: `Rian dan pemeran utama menghabiskan waktu bersama
+di Pantai Senja. Percakapan dapat berkembang secara alami.`
   };
+
+  const id = personas[character] ? character : "rian";
+  const mission = Math.max(
+    1,
+    Math.min(8, Number(currentMission) || 1)
+  );
+
+  if (
+    typeof userMessage !== "string" ||
+    !userMessage.trim() ||
+    userMessage.length > 1500
+  ) {
+    return res.status(400).json({
+      error: "Pesan kosong atau terlalu panjang."
+    });
+  }
 
   const systemInstruction = `
-${PERSONAS[character] || PERSONAS.rian}
+${personas[id]}
 
-ATURAN BATASAN CERITA:
-- ${MISSION_CONTEXTS[currentMission] || MISSION_CONTEXTS[1]}
-- DILARANG membocorkan alur cerita misi masa depan! HANYA tahu sampai Misi ${currentMission}.
-- Balas singkat dan alami seperti pesan WhatsApp (1-3 kalimat).
+KONTEKS CERITA:
+${missions[mission]}
+
+ATURAN:
+- Cerita berlangsung dalam AU fiksi interaktif.
+- Jangan membocorkan kejadian pada misi berikutnya.
+- Ketahui hanya peristiwa yang sudah terjadi sampai misi aktif.
+- Jangan mengarang bahwa karakter sudah bertemu jika belum.
+- Pertahankan kepribadian dan hubungan antarkarakter.
+- Balas secara alami seperti pesan WhatsApp.
+- Umumnya cukup 1–3 kalimat.
+- Jangan menulis dialog atau menentukan tindakan pemain.
+- Jangan mengulang pesan pemain sebagai balasan.
 `;
 
+  const safeHistory = Array.isArray(history)
+    ? history.slice(-20).filter(msg =>
+        msg &&
+        ["user", "ai"].includes(msg.sender) &&
+        typeof msg.text === "string"
+    )
+    : [];
+
   const messages = [
-    { role: "system", content: systemInstruction }
+    { role: "system", content: systemInstruction },
+    ...safeHistory.map(msg => ({
+      role: msg.sender === "user" ? "user" : "assistant",
+      content: msg.text.slice(0, 2000)
+    })),
+    { role: "user", content: userMessage.trim() }
   ];
 
-  if (Array.isArray(history)) {
-    history.forEach(msg => {
-      messages.push({
-        role: msg.sender === 'user' ? 'user' : 'assistant',
-        content: msg.text
-      });
-    });
+  // Hilangkan duplikasi pesan terakhir bila sudah terdapat di history.
+  if (
+    safeHistory.length &&
+    safeHistory[safeHistory.length - 1].sender === "user" &&
+    safeHistory[safeHistory.length - 1].text === userMessage.trim()
+  ) {
+    messages.pop();
   }
 
-  messages.push({ role: "user", content: userMessage });
-
   try {
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${GROQ_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: "qwen/qwen3.8-27b",
-        messages: messages,
-        temperature: 0.7,
-        max_tokens: 150
-      })
-    });
+    const response = await fetch(
+      "https://api.groq.com/openai/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: "qwen/qwen3.8-27b",
+          messages,
+          temperature: 0.7,
+          max_tokens: 180
+        })
+      }
+    );
 
     const data = await response.json();
 
     if (!response.ok) {
-      return res.status(200).json({ 
-        reply: `[Error Groq ${response.status}]: ${data.error?.message || JSON.stringify(data)}` 
+      console.error("Groq API error:", response.status);
+
+      return res.status(502).json({
+        error: "Layanan AI sedang bermasalah. Coba lagi nanti."
       });
     }
 
-    let reply = data.choices?.[0]?.message?.content || "Maaf, pesan kosong dari server.";
-    reply = reply.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F7FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');
+    const reply = data.choices?.[0]?.message?.content?.trim();
 
-    return res.status(200).json({ reply: reply.trim() });
+    if (!reply) {
+      return res.status(502).json({
+        error: "AI tidak memberikan balasan."
+      });
+    }
+
+    return res.status(200).json({ reply });
   } catch (error) {
-    return res.status(200).json({ reply: `[Server Error]: ${error.message}` });
+    console.error("Chat backend error:", error.message);
+
+    return res.status(500).json({
+      error: "Terjadi kesalahan pada server."
+    });
   }
 }
