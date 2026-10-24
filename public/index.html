@@ -3,30 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>After Hours - Interactive AU Simulator</title>
-  
-  <!-- Tailwind CSS CDN -->
+  <title>After Hours - LNGSHOT AU Experience</title>
+
+  <!-- Tailwind CSS & Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <!-- Google Fonts Inter & Playfair -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet" />
 
   <style>
     * {
       box-sizing: border-box;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
     }
 
+    /* Mengunci tinggi layar penuh mobile tanpa scroll berlebih */
     html, body {
       width: 100%;
       height: 100%;
+      height: 100dvh;
       margin: 0;
       padding: 0;
-      background-color: #0d0e12;
-      color: #e2e8f0;
+      background-color: #08090c;
+      color: #f1f5f9;
       overflow: hidden;
     }
 
@@ -36,148 +36,168 @@
       justify-content: center;
     }
 
-    /* Container utama bergaya Phone Display / AU Frame */
-    .au-container {
+    /* Main Phone Shell */
+    .au-shell {
       position: relative;
       width: 100%;
       height: 100%;
+      height: 100dvh;
       max-width: 430px;
-      background-color: #121318;
+      background-color: #0f1015;
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      box-shadow: 0 0 60px rgba(0, 0, 0, 0.8), 0 0 20px rgba(99, 102, 241, 0.15);
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.9), 0 0 20px rgba(99, 102, 241, 0.2);
     }
 
-    @media (min-width: 500px) and (min-height: 700px) {
-      .au-container {
+    @media (min-width: 500px) and (min-height: 650px) {
+      .au-shell {
         height: 92vh;
         border-radius: 40px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.12);
       }
     }
 
-    /* Custom Scrollbar minimalis */
+    /* Custom Scrollbar */
     .custom-scroll::-webkit-scrollbar { width: 3px; }
     .custom-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 4px; }
 
-    /* Bubble Chat Styling */
-    .chat-bubble-user {
+    /* Bubble Chat Styling khas LNGSHOT */
+    .bubble-user {
       background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
       color: #ffffff;
       border-bottom-right-radius: 4px;
     }
-    .chat-bubble-model {
-      background-color: #1e2029;
+    .bubble-bot {
+      background-color: #181a22;
       color: #f1f5f9;
-      border: 1px solid rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-bottom-left-radius: 4px;
     }
 
-    /* Transition Screens */
-    .screen-view {
-      transition: opacity 0.25s ease-in-out, transform 0.25s ease-in-out;
-      width: 100%;
-      height: 100%;
-    }
-
-    .serif-font {
-      font-family: 'Playfair Display', serif;
-    }
+    .serif-font { font-family: 'Playfair Display', serif; }
   </style>
 </head>
 <body>
 
-  <div class="au-container">
+  <div class="au-shell">
 
-    <!-- HEADER / NAVIGATION BAR -->
-    <header class="w-full px-5 py-4 bg-[#121318]/90 backdrop-blur-md border-b border-white/10 z-40 flex items-center justify-between">
+    <!-- TOP HEADER -->
+    <header class="w-full px-5 py-3.5 bg-[#0f1015]/90 backdrop-blur-md border-b border-white/10 z-40 flex items-center justify-between shrink-0">
       <div class="flex items-center space-x-3">
-        <button id="btn-back" onclick="showScreen('chats')" class="text-gray-400 hover:text-white transition hidden text-sm">
+        <button id="btn-back" onclick="showTab('chats')" class="text-gray-400 hover:text-white transition hidden text-sm">
           <i class="fa-solid fa-chevron-left"></i>
         </button>
         <div>
-          <h1 id="header-title" class="text-sm font-bold tracking-wide text-white">After Hours AU</h1>
-          <p id="header-sub" class="text-[10px] text-indigo-400 font-medium">Misi 1: Salah Kirim Boba</p>
+          <h1 id="header-title" class="text-xs font-extrabold tracking-wider uppercase text-white">After Hours AU</h1>
+          <p id="header-sub" class="text-[10px] text-indigo-400 font-medium truncate max-w-[190px]">Misi 1: Salah Kirim Boba</p>
         </div>
       </div>
 
-      <div class="flex items-center space-x-3">
-        <!-- Badge Misi -->
-        <span id="mission-badge" onclick="toggleMissionModal()" class="cursor-pointer text-[10px] bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 px-2.5 py-1 rounded-full font-semibold hover:bg-indigo-500/20 transition">
-          Misi 1 / 8
-        </span>
-      </div>
+      <!-- Badge Status Misi -->
+      <button onclick="toggleMissionModal()" class="text-[10px] bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 px-3 py-1 rounded-full font-bold hover:bg-indigo-500/20 transition flex items-center gap-1.5">
+        <i class="fa-solid fa-flag text-[9px]"></i>
+        <span id="mission-badge">Misi 1 / 8</span>
+      </button>
     </header>
 
-    <!-- CONTENT AREA -->
-    <main class="relative flex-1 w-full h-full overflow-hidden">
+    <!-- CONTENT BODY (RESPONSIF PENUH) -->
+    <main class="relative flex-1 w-full h-full overflow-hidden flex flex-col">
 
-      <!-- VIEW 1: DAFTAR CHAT KARAKTER -->
-      <section id="screen-chats" class="screen-view absolute inset-0 flex flex-col z-20 bg-[#121318]">
-        <!-- Banner Cerita Singkat -->
-        <div class="p-4 mx-4 mt-4 bg-gradient-to-r from-indigo-950/40 to-slate-900/40 border border-indigo-500/20 rounded-2xl">
-          <h2 class="serif-font italic text-sm text-indigo-200 mb-1">Pesan Masuk</h2>
-          <p id="au-status-desc" class="text-[11px] text-gray-400 leading-relaxed">
+      <!-- TAB 1: DAFTAR PESAN / CHAT LIST -->
+      <section id="tab-chats" class="w-full h-full flex flex-col overflow-hidden bg-[#0f1015]">
+        <!-- Hero Banner Rinai Style -->
+        <div class="p-4 mx-4 mt-4 bg-gradient-to-br from-indigo-950/50 via-slate-900/60 to-black/80 border border-indigo-500/20 rounded-2xl shrink-0">
+          <span class="text-[9px] font-extrabold uppercase tracking-widest text-indigo-400 block mb-1">INTERACTIVE AU STORY</span>
+          <h2 class="serif-font italic text-sm text-white mb-1">Garis Cerita & Misi Aktif</h2>
+          <p id="au-status-desc" class="text-[11px] text-gray-300 leading-relaxed">
             Sapa Rian di WhatsApp mengenai boba Earl Grey yang salah kirim ke rumahmu.
           </p>
         </div>
 
-        <!-- List Kontak Chat -->
-        <div class="flex-1 overflow-y-auto custom-scroll p-4 space-y-2" id="character-list">
-          <!-- Item Kontak di-render via JS -->
+        <!-- Daftar Kontak Chat -->
+        <div class="flex-1 overflow-y-auto custom-scroll p-4 space-y-2.5" id="character-list">
         </div>
       </section>
 
-      <!-- VIEW 2: RUANG OBROLAN (CHAT ROOM) -->
-      <section id="screen-room" class="screen-view absolute inset-0 hidden flex-col z-30 bg-[#0d0e12]">
-        
-        <!-- Messages Area -->
-        <div id="messages-container" class="flex-1 overflow-y-auto custom-scroll p-4 space-y-3">
-          <!-- Bubble Chat di-render via JS -->
+      <!-- TAB 2: RUANG CHAT (BISA NGECHAT KANPA TERPOTONG) -->
+      <section id="tab-room" class="w-full h-full hidden flex-col overflow-hidden bg-[#0a0b0e]">
+        <!-- Area Chat Messages (Mengisi ruang yang tersedia dan scroll independen) -->
+        <div id="messages-container" class="flex-1 overflow-y-auto custom-scroll p-4 space-y-3.5">
         </div>
 
-        <!-- Input Chat Bar -->
-        <form id="chat-form" onsubmit="handleSend(event)" class="p-3 bg-[#121318] border-t border-white/10 flex items-center space-x-2">
+        <!-- Input Bar (Terkunci di bagian bawah, tidak akan hilang/terpotong) -->
+        <form id="chat-form" onsubmit="handleSend(event)" class="p-3 bg-[#0f1015] border-t border-white/10 flex items-center space-x-2 shrink-0">
           <input 
             id="chat-input" 
             type="text" 
-            placeholder="Ketik balasan..." 
+            placeholder="Ketik pesan balasan..." 
             autocomplete="off"
-            class="flex-1 bg-[#1a1c24] text-white text-xs rounded-xl px-4 py-3 focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder-gray-500 border border-white/5"
+            class="flex-1 bg-[#181a22] text-white text-xs rounded-xl px-4 py-3 focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder-gray-500 border border-white/5"
           />
           <button type="submit" class="w-10 h-10 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl flex items-center justify-center text-xs transition active:scale-95 shadow-lg shadow-indigo-600/30">
             <i class="fa-solid fa-paper-plane"></i>
           </button>
         </form>
+      </section>
 
+      <!-- TAB 3: LINIMASA / SOCIAL FEEDS -->
+      <section id="tab-feeds" class="w-full h-full hidden flex-col overflow-hidden bg-[#0f1015] p-4">
+        <h2 class="text-xs font-bold text-gray-300 uppercase tracking-wider mb-3">Linimasa Postingan AU</h2>
+        <div class="space-y-3 overflow-y-auto custom-scroll flex-1 pr-1" id="feeds-container">
+          <div class="p-3.5 bg-[#181a22] border border-white/5 rounded-2xl">
+            <div class="flex items-center space-x-2.5 mb-2">
+              <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200&auto=format&fit=crop" class="w-7 h-7 rounded-full object-cover">
+              <div>
+                <h4 class="text-xs font-bold text-white">Rian Pratama</h4>
+                <p class="text-[9px] text-gray-500">@rianprtm · 10m</p>
+              </div>
+            </div>
+            <p class="text-xs text-gray-300">Random banget hari ini, salah kirim boba Earl Grey ke cewek di dekat rumah wkwk 🧋</p>
+          </div>
+        </div>
       </section>
 
     </main>
 
-    <!-- MISSION LOG MODAL -->
+    <!-- NAVIGATION DOCK / FOOTER TAB (GAYA RINAI WORKERS UI) -->
+    <nav id="bottom-nav" class="w-full py-2 px-6 bg-[#0f1015] border-t border-white/10 flex justify-around items-center shrink-0 z-40">
+      <button onclick="showTab('chats')" id="nav-chats" class="flex flex-col items-center gap-1 text-indigo-400 transition">
+        <i class="fa-solid fa-comment-dots text-base"></i>
+        <span class="text-[9px] font-bold">Pesan</span>
+      </button>
+      <button onclick="showTab('feeds')" id="nav-feeds" class="flex flex-col items-center gap-1 text-gray-500 hover:text-gray-300 transition">
+        <i class="fa-solid fa-globe text-base"></i>
+        <span class="text-[9px] font-bold">Linimasa</span>
+      </button>
+      <button onclick="toggleMissionModal()" class="flex flex-col items-center gap-1 text-gray-500 hover:text-gray-300 transition">
+        <i class="fa-solid fa-layer-group text-base"></i>
+        <span class="text-[9px] font-bold">Misi</span>
+      </button>
+    </nav>
+
+    <!-- MISSION SELECTOR MODAL -->
     <div id="mission-modal" class="hidden absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-6">
       <div class="bg-[#181a22] border border-white/10 rounded-2xl p-5 w-full max-w-xs space-y-4">
         <div class="flex justify-between items-center border-b border-white/10 pb-2">
-          <h3 class="text-xs font-bold text-indigo-300">LOG ALUR CERITA</h3>
+          <h3 class="text-xs font-bold text-indigo-300 uppercase tracking-wider">PILIH MISI ALUR CERITA</h3>
           <button onclick="toggleMissionModal()" class="text-gray-400 text-xs"><i class="fa-solid fa-xmark"></i></button>
         </div>
         
         <div class="space-y-2 max-h-60 overflow-y-auto custom-scroll" id="mission-selector-list">
-          <!-- List pilihan Misi 1-8 -->
         </div>
       </div>
     </div>
 
   </div>
 
-  <!-- LOGIK SHIFTED JAVASCRIPT -->
+  <!-- MAIN JAVASCRIPT LOGIC (SYNCED WITH NEXT.JS GROQ API) -->
   <script>
     // GAME STATE
     let currentMission = 1;
     let activeCharId = null;
 
-    // CONFIG KARAKTER (DISESUAIKAN DENGAN API GROQ)
+    // CONFIG KARAKTER (DISESUAIKAN DENGAN PROMPT SERVERLESS)
     const CHARACTERS = {
       rian: { id: "rian", name: "Rian Pratama", role: "Desainer Grafis", avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200&auto=format&fit=crop", unlockedAt: 1 },
       siti: { id: "siti", name: "Siti", role: "Sahabat", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop", unlockedAt: 2 },
@@ -198,7 +218,7 @@
       8: { title: "Misi 8", desc: "Kencan romantis di Pantai Senja." }
     };
 
-    // RIWAYAT CHAT
+    // CHAT HISTORIES SINKRON DENGAN GROQ BACKEND
     const chatHistories = {
       rian: [{ sender: 'model', text: 'Halo! Kirana salah kasih nomor, ini boba Earl Grey kamu ya?' }],
       siti: [{ sender: 'model', text: 'Eh kamu beneran dikirimin boba sama cowok ganteng?' }],
@@ -207,34 +227,52 @@
       maya: [{ sender: 'model', text: 'Halo, file pekerjaan kemarin sudah oke ya.' }]
     };
 
-    // INITIALIZATION
     window.onload = function() {
       renderCharacterList();
       renderMissionSelector();
     };
 
-    // SWITCH SCREEN
-    function showScreen(screen) {
-      const chatsScreen = document.getElementById('screen-chats');
-      const roomScreen = document.getElementById('screen-room');
+    // FUNGSI PINDAH TAB
+    function showTab(tabName) {
+      const tabChats = document.getElementById('tab-chats');
+      const tabRoom = document.getElementById('tab-room');
+      const tabFeeds = document.getElementById('tab-feeds');
       const btnBack = document.getElementById('btn-back');
+      const navChats = document.getElementById('nav-chats');
+      const navFeeds = document.getElementById('nav-feeds');
 
-      if (screen === 'chats') {
-        chatsScreen.classList.remove('hidden');
-        roomScreen.classList.add('hidden');
+      // Reset style tombol navigasi
+      navChats.className = "flex flex-col items-center gap-1 text-gray-500 hover:text-gray-300 transition";
+      navFeeds.className = "flex flex-col items-center gap-1 text-gray-500 hover:text-gray-300 transition";
+
+      if (tabName === 'chats') {
+        tabChats.classList.remove('hidden');
+        tabRoom.classList.add('hidden');
+        tabFeeds.classList.add('hidden');
         btnBack.classList.add('hidden');
-        document.getElementById('header-title').textContent = "After Hours AU";
+        navChats.className = "flex flex-col items-center gap-1 text-indigo-400 transition";
+        document.getElementById('header-title').textContent = "AFTER HOURS AU";
         document.getElementById('header-sub').textContent = `${MISSIONS[currentMission].title}: ${MISSIONS[currentMission].desc}`;
         activeCharId = null;
         renderCharacterList();
-      } else if (screen === 'room') {
-        chatsScreen.classList.add('hidden');
-        roomScreen.classList.remove('hidden');
+      } else if (tabName === 'feeds') {
+        tabChats.classList.add('hidden');
+        tabRoom.classList.add('hidden');
+        tabFeeds.classList.remove('hidden');
+        btnBack.classList.add('hidden');
+        navFeeds.className = "flex flex-col items-center gap-1 text-indigo-400 transition";
+        document.getElementById('header-title').textContent = "LINIMASA AU";
+        document.getElementById('header-sub').textContent = "Postingan Publik Karakter";
+      } else if (tabName === 'room') {
+        tabChats.classList.add('hidden');
+        tabRoom.classList.remove('hidden');
+        tabRoom.classList.add('flex');
+        tabFeeds.classList.add('hidden');
         btnBack.classList.remove('hidden');
       }
     }
 
-    // RENDER LIST KONTAK
+    // RENDER DAFTAR KONTAK
     function renderCharacterList() {
       const container = document.getElementById('character-list');
       container.innerHTML = '';
@@ -250,7 +288,7 @@
           if (isUnlocked) {
             openChatRoom(char.id);
           } else {
-            alert(`Karakter ${char.name} belum bisa di-chat pada Misi ${currentMission}.`);
+            alert(`Karakter ${char.name} belum dapat di-chat pada Misi ${currentMission}.`);
           }
         };
 
@@ -285,11 +323,11 @@
       document.getElementById('header-title').textContent = char.name;
       document.getElementById('header-sub').textContent = `${char.role} • Online`;
 
-      showScreen('room');
+      showTab('room');
       renderMessages();
     }
 
-    // RENDER PESAN
+    // RENDER BUBBLE CHAT
     function renderMessages() {
       const container = document.getElementById('messages-container');
       container.innerHTML = '';
@@ -301,24 +339,24 @@
         bubble.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
 
         bubble.innerHTML = `
-          <div class="max-w-[80%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed ${isUser ? 'chat-bubble-user' : 'chat-bubble-model'}">
+          <div class="max-w-[80%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed ${isUser ? 'bubble-user' : 'bubble-bot'}">
             ${msg.text}
           </div>
         `;
         container.appendChild(bubble);
       });
 
+      // Otomatis scroll ke pesan paling bawah
       container.scrollTop = container.scrollHeight;
     }
 
-    // HANDLER KIRIM PESAN REAL KE NEXT.JS / GROQ API
+    // KIRIM PESAN REAL KE VERCEL / NEXT.JS API HANDLER
     async function handleSend(e) {
       e.preventDefault();
       const input = document.getElementById('chat-input');
       const text = input.value.trim();
       if (!text || !activeCharId) return;
 
-      // Simpan pesan user
       chatHistories[activeCharId].push({ sender: 'user', text: text });
       input.value = '';
       renderMessages();
@@ -345,13 +383,13 @@
         renderMessages();
 
       } catch (err) {
-        chatHistories[activeCharId].push({ sender: 'model', text: "Error: Tidak terhubung ke server." });
+        chatHistories[activeCharId].push({ sender: 'model', text: "Gagal terhubung ke server." });
         document.getElementById('header-sub').textContent = `${CHARACTERS[activeCharId].role} • Online`;
         renderMessages();
       }
     }
 
-    // LOGIKA MODAL MISI
+    // MODAL SELEKTOR MISI
     function toggleMissionModal() {
       const modal = document.getElementById('mission-modal');
       modal.classList.toggle('hidden');
@@ -363,7 +401,7 @@
 
       Object.keys(MISSIONS).forEach(mNum => {
         const btn = document.createElement('button');
-        btn.className = `w-full text-left p-2 rounded-xl text-xs border transition ${parseInt(mNum) === currentMission ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300 font-bold' : 'bg-white/5 border-transparent text-gray-400 hover:bg-white/10'}`;
+        btn.className = `w-full text-left p-2.5 rounded-xl text-xs border transition ${parseInt(mNum) === currentMission ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300 font-bold' : 'bg-white/5 border-transparent text-gray-400 hover:bg-white/10'}`;
         btn.textContent = `Misi ${mNum}: ${MISSIONS[mNum].desc}`;
 
         btn.onclick = () => {
