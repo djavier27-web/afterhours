@@ -34,7 +34,6 @@
       min-height: 100vh;
     }
 
-    /* Outer iPhone Frame */
     .iphone-frame {
       width: 385px;
       height: 800px;
@@ -48,7 +47,6 @@
       flex-direction: column;
     }
 
-    /* Dynamic Island */
     .dynamic-island {
       position: absolute;
       top: 10px;
@@ -92,7 +90,6 @@
       color: var(--ios-subtext);
     }
 
-    /* Screen Views */
     .screen {
       width: 100%;
       height: 100%;
@@ -109,7 +106,6 @@
       display: flex;
     }
 
-    /* Home Screen App Grid */
     .homescreen {
       background: linear-gradient(180deg, #1e1e24 0%, #08080a 100%);
       padding: 60px 24px 24px 24px;
@@ -130,6 +126,7 @@
       cursor: pointer;
     }
 
+    /* Logo Aplikasi Tanpa Emoji */
     .app-icon {
       width: 60px;
       height: 60px;
@@ -148,13 +145,11 @@
       color: #fff;
     }
 
-    /* Icons Custom Styling */
     .icon-wa { background: #25D366; }
     .icon-tiktok { background: #000000; border: 1px solid #333; }
     .icon-ig { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
     .icon-x { background: #000000; border: 1px solid #333; font-weight: 900; }
 
-    /* Generic App Header */
     .app-header {
       height: 50px;
       background-color: var(--ios-card);
@@ -171,7 +166,6 @@
       cursor: pointer;
     }
 
-    /* WhatsApp UI */
     .chat-list {
       flex: 1;
       overflow-y: auto;
@@ -218,7 +212,6 @@
       margin-top: 2px;
     }
 
-    /* Chat Detail Screen */
     .chat-detail {
       background-color: var(--wa-bg);
     }
@@ -279,7 +272,6 @@
       font-size: 0.8rem;
     }
 
-    /* Placeholder Screens for Social Media */
     .feed-placeholder {
       flex: 1;
       display: flex;
@@ -292,7 +284,6 @@
       text-align: center;
     }
 
-    /* iOS Home Bar */
     .home-bar {
       position: absolute;
       bottom: 8px;
@@ -320,7 +311,7 @@
       </div>
     </div>
 
-    <!-- Screen 1: Homescreen -->
+    <!-- Homescreen -->
     <div class="screen homescreen active" id="screen-home">
       <div class="app-grid">
         <div class="app-icon-wrapper" onclick="openApp('wa')">
@@ -342,18 +333,16 @@
       </div>
     </div>
 
-    <!-- Screen 2: WhatsApp List -->
+    <!-- WhatsApp List -->
     <div class="screen" id="screen-wa">
       <div class="app-header">
         <span class="back-btn" onclick="goHome()">Home</span>
         <span style="font-weight: 600; font-size: 1rem;">Pesan</span>
       </div>
-      <div class="chat-list" id="chat-list">
-        <!-- Rendered via JS based on mission -->
-      </div>
+      <div class="chat-list" id="chat-list"></div>
     </div>
 
-    <!-- Screen 3: Chat Detail -->
+    <!-- Chat Detail -->
     <div class="screen chat-detail" id="screen-chat">
       <div class="app-header" style="background-color: var(--wa-header);">
         <span class="back-btn" onclick="openApp('wa')">Kembali</span>
@@ -369,50 +358,45 @@
       </div>
     </div>
 
-    <!-- Screen 4: TikTok -->
+    <!-- Apps Lain -->
     <div class="screen" id="screen-tiktok">
       <div class="app-header">
         <span class="back-btn" onclick="goHome()">Home</span>
         <span style="font-weight: 600;">TikTok</span>
       </div>
       <div class="feed-placeholder">
-        Feed TikTok belum tersedia di Misi ini. Silakan periksa pesan WhatsApp untuk melanjutkan cerita.
+        Feed TikTok belum tersedia di Misi ini. Periksa pesan WhatsApp kamu!
       </div>
     </div>
 
-    <!-- Screen 5: Instagram -->
     <div class="screen" id="screen-ig">
       <div class="app-header">
         <span class="back-btn" onclick="goHome()">Home</span>
         <span style="font-weight: 600;">Instagram</span>
       </div>
       <div class="feed-placeholder">
-        Tidak ada postingan baru dari kontak kamu.
+        Belum ada update postingan baru.
       </div>
     </div>
 
-    <!-- Screen 6: X -->
     <div class="screen" id="screen-x">
       <div class="app-header">
         <span class="back-btn" onclick="goHome()">Home</span>
         <span style="font-weight: 600;">X</span>
       </div>
-      <div class="feed-placeholder" id="x-content">
-        Postingan X terhubung dengan cerita pada Misi 2.
+      <div class="feed-placeholder">
+        Postingan X terhubung dengan alur cerita pada Misi 2.
       </div>
     </div>
 
-    <!-- Home Indicator -->
     <div class="home-bar" onclick="goHome()"></div>
   </div>
 
   <script>
-    // State Aplikasi
     let currentMission = 1;
     let activeCharacter = 'rian';
     const chatHistories = { rian: [], dimas: [], siti: [], maya: [], ibu: [] };
 
-    // Misi & Karakter Terbuka
     const MISSION_DATA = {
       1: { name: "Salah Kirim Boba", unlocked: ['rian'] },
       2: { name: "Chat WhatsApp & Post X", unlocked: ['rian', 'siti'] },
@@ -439,8 +423,7 @@
     }
 
     function toggleIsland() {
-      const di = document.getElementById('dynamic-island');
-      di.classList.toggle('expanded');
+      document.getElementById('dynamic-island').classList.toggle('expanded');
     }
 
     function goHome() {
@@ -500,7 +483,7 @@
       history.forEach(m => {
         const bubble = document.createElement('div');
         bubble.className = `bubble ${m.sender === 'user' ? 'user' : 'bot'}`;
-        bubble.textContent = m.text;
+        bubble.textContent = m.text; // Emoji di izinkan di sini
         box.appendChild(bubble);
       });
 
@@ -512,10 +495,7 @@
       const text = input.value.trim();
       if (!text) return;
 
-      // Hapus emoji dari input pengguna
-      const cleanText = removeEmojis(text);
-
-      chatHistories[activeCharacter].push({ sender: 'user', text: cleanText });
+      chatHistories[activeCharacter].push({ sender: 'user', text: text });
       input.value = '';
       renderMessages();
 
@@ -525,7 +505,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             character: activeCharacter,
-            userMessage: cleanText,
+            userMessage: text,
             history: chatHistories[activeCharacter],
             currentMission: currentMission
           })
@@ -533,19 +513,13 @@
 
         const data = await response.json();
         if (data.reply) {
-          // Bersihkan emoji dari balasan backend
-          const cleanReply = removeEmojis(data.reply);
-          chatHistories[activeCharacter].push({ sender: activeCharacter, text: cleanReply });
+          chatHistories[activeCharacter].push({ sender: activeCharacter, text: data.reply });
           renderMessages();
         }
       } catch (err) {
-        chatHistories[activeCharacter].push({ sender: activeCharacter, text: "Gagal terhubung ke jaringan." });
+        chatHistories[activeCharacter].push({ sender: activeCharacter, text: "Gagal terhubung ke server." });
         renderMessages();
       }
-    }
-
-    function removeEmojis(str) {
-      return str.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F7FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');
     }
 
     // Inisialisasi
