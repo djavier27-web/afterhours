@@ -1,290 +1,1285 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>iPhone AU Simulator</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; user-select: none; }
-    body { background: #0a0a0c; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #fff; overflow: hidden; }
-    
-    /* Device Frame */
-    .iphone-frame { width: 380px; height: 780px; background: #000; border-radius: 48px; border: 10px solid #2d2d30; box-shadow: 0 0 50px rgba(0,0,0,0.8); position: relative; overflow: hidden; display: flex; flex-direction: column; }
-    
-    /* Status Bar & Dynamic Island */
-    .status-bar { height: 44px; display: flex; justify-content: space-between; align-items: center; padding: 0 24px; font-size: 13px; font-weight: 600; z-index: 100; position: absolute; top: 0; width: 100%; }
-    .dynamic-island { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 110px; height: 28px; background: #000; border-radius: 20px; z-index: 101; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
-    .dynamic-island.expanded { width: 320px; height: 50px; border-radius: 25px; padding: 10px 15px; }
-    .island-text { font-size: 11px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: none; }
-    .dynamic-island.expanded .island-text { display: block; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>iPhone AU Simulator - Interactive Story</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-    /* App Screens Container */
-    .screen { flex: 1; display: none; flex-direction: column; height: 100%; padding-top: 44px; padding-bottom: 20px; background: #000; position: relative; }
-    .screen.active { display: flex; }
+        body {
+            background-color: #030712;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
 
-    /* Home Screen Grid */
-    .home-screen { background: linear-gradient(180deg, #1a2a6c, #b21f1f, #fdbb2d); padding: 60px 20px 20px; display: grid; grid-template-columns: repeat(4, 1fr); grid-gap: 20px; align-content: start; }
-    .app-icon { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; }
-    .icon-box { width: 58px; height: 58px; border-radius: 14px; display: flex; align-items: center; justify-content: center; background: #333; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-    .app-name { font-size: 11px; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
+        /* Phone Frame Glow & Structure */
+        .phone-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            max-width: 410px;
+            max-height: 870px;
+            background-color: #000;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(99, 102, 241, 0.25), 0 25px 60px -15px rgba(0, 0, 0, 0.95);
+        }
 
-    /* Flexbox Fixed Layout for Chat Screen */
-    .chat-container { display: flex; flex-direction: column; height: 100%; background: #0b141a; }
-    .chat-header { height: 55px; background: #1f2c34; display: flex; align-items: center; padding: 0 12px; gap: 10px; flex-shrink: 0; border-bottom: 1px solid #2a3942; }
-    .back-btn { cursor: pointer; padding: 5px; }
-    .avatar { width: 36px; height: 36px; border-radius: 50%; background: #00a884; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-    .chat-messages { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
-    
-    /* Message Bubbles */
-    .msg { max-width: 78%; padding: 8px 12px; border-radius: 12px; font-size: 13.5px; line-height: 1.4; word-wrap: break-word; }
-    .msg.incoming { background: #202c33; align-self: flex-start; border-top-left-radius: 2px; color: #e9edef; }
-    .msg.outgoing { background: #005c4b; align-self: flex-end; border-top-right-radius: 2px; color: #e9edef; }
-    .msg-time { font-size: 9px; color: #8696a0; float: right; margin-top: 4px; margin-left: 8px; }
+        @media (min-height: 670px) and (min-width: 420px) {
+            .phone-container {
+                border-radius: 54px;
+                border: 11px solid #1f293d;
+                height: 96vh;
+            }
+        }
 
-    /* Fixed Input Bar at Bottom */
-    .chat-input-bar { height: 55px; background: #1f2c34; display: flex; align-items: center; padding: 0 10px; gap: 8px; flex-shrink: 0; border-top: 1px solid #2a3942; }
-    .chat-input { flex: 1; background: #2a3942; border: none; outline: none; height: 36px; border-radius: 18px; padding: 0 15px; color: #fff; font-size: 13.5px; }
-    .send-btn { width: 36px; height: 36px; background: #00a884; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+        /* Scrollbar styles */
+        .custom-scroll::-webkit-scrollbar {
+            width: 3px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
 
-    /* Generic App Styling */
-    .app-header { height: 50px; background: #1c1c1e; display: flex; align-items: center; padding: 0 15px; gap: 15px; font-weight: 600; flex-shrink: 0; }
-    .app-content { flex: 1; overflow-y: auto; padding: 15px; background: #000; }
-    .list-item { padding: 12px; border-bottom: 1px solid #222; cursor: pointer; display: flex; gap: 12px; align-items: center; }
+        /* Dynamic Island Transitions */
+        .island-collapsed {
+            width: 140px;
+            height: 32px;
+            border-radius: 20px;
+        }
+        .island-expanded {
+            width: 340px;
+            height: 155px;
+            border-radius: 30px;
+        }
 
-    /* Home Indicator Bar */
-    .home-bar { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 130px; height: 4px; background: #fff; border-radius: 2px; z-index: 100; cursor: pointer; }
-  </style>
+        /* Screen Transitions */
+        .app-screen {
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+            will-change: transform, opacity;
+        }
+
+        /* Chat Bubbles */
+        .chat-bubble-user {
+            background-color: #0084ff;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-bubble-model {
+            background-color: #26262a;
+            color: #f3f4f6;
+            border-bottom-left-radius: 4px;
+        }
+
+        /* Camera Flash */
+        @keyframes cameraFlash {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        .flash-active {
+            animation: cameraFlash 0.3s ease-out forwards;
+        }
+
+        /* Toast Animation */
+        @keyframes toastSlide {
+            0% { opacity: 0; transform: translate(-50%, -20px); }
+            15% { opacity: 1; transform: translate(-50%, 0); }
+            85% { opacity: 1; transform: translate(-50%, 0); }
+            100% { opacity: 0; transform: translate(-50%, -20px); }
+        }
+        .animate-toast {
+            animation: toastSlide 3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+    </style>
 </head>
 <body>
 
-  <div class="iphone-frame">
-    <!-- Dynamic Island & Status Bar -->
-    <div class="dynamic-island" id="island">
-      <span class="island-text" id="islandText">Misi 1: Cek WhatsApp dari Rian</span>
+    <!-- MAIN IPHONE FRAME -->
+    <div class="phone-container">
+
+        <!-- WALLPAPER -->
+        <div id="wallpaper" class="absolute inset-0 bg-cover bg-center transition-all duration-500 z-0" style="background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop');"></div>
+        <div class="absolute inset-0 bg-black/40 z-0 pointer-events-none"></div>
+
+        <!-- STATUS BAR & DYNAMIC ISLAND -->
+        <div class="relative z-50 w-full pt-3 px-6 flex justify-between items-center text-xs font-semibold text-white pointer-events-none select-none">
+            <!-- Time -->
+            <span id="status-clock" class="w-12 text-center font-bold text-[13px] tracking-tight">12:00</span>
+
+            <!-- DYNAMIC ISLAND -->
+            <div id="dynamic-island-container" class="pointer-events-auto absolute left-1/2 -translate-x-1/2 top-2.5 z-50 flex items-center justify-center">
+                <div id="dynamic-island" onclick="toggleIslandExpand()" class="island-collapsed bg-black/95 backdrop-blur-xl text-white flex items-center justify-between px-3.5 cursor-pointer shadow-2xl transition-all duration-300 ease-in-out border border-white/10 overflow-hidden">
+                    
+                    <!-- Collapsed View -->
+                    <div id="island-collapsed-content" class="flex items-center justify-between w-full text-xs">
+                        <div class="flex items-center space-x-1.5 text-amber-400">
+                            <i id="island-icon" class="fa-solid fa-bullseye text-[10px] animate-pulse"></i>
+                            <span id="island-mission-title" class="font-bold text-[11px] truncate max-w-[85px]">Misi 1</span>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <span id="island-pulse-dot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        </div>
+                    </div>
+
+                    <!-- Expanded View -->
+                    <div id="island-expanded-content" class="hidden flex-col justify-between w-full h-full p-3">
+                        <div class="flex justify-between items-center border-b border-gray-800/80 pb-1">
+                            <span class="text-[10px] text-amber-400 font-extrabold uppercase tracking-wider flex items-center gap-1">
+                                <i class="fa-solid fa-flag"></i> AU MISSION LOG
+                            </span>
+                            <span id="island-mission-badge" class="text-[9px] bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded-full border border-amber-500/30">Misi 1 / 50</span>
+                        </div>
+                        <p id="island-mission-desc" class="text-[11px] text-gray-200 leading-tight my-1 font-medium line-clamp-2">
+                            Sapa Rian mengenai boba Earl Grey yang salah kirim ke rumahmu.
+                        </p>
+                        
+                        <!-- Timer lock display inside dynamic island -->
+                        <div id="island-timer-box" class="hidden bg-red-950/40 border border-red-500/30 rounded-lg p-1 text-center my-0.5">
+                            <span class="text-[9px] text-red-300 block font-semibold">🕒 Misi Berikutnya Terkunci:</span>
+                            <span id="island-timer-clock" class="text-xs font-mono font-bold text-red-400">02:00:00</span>
+                        </div>
+
+                        <div class="flex justify-between items-center text-[9px] text-gray-400 pt-1 border-t border-gray-800/60">
+                            <span id="island-step-hint" class="text-emerald-400 font-medium truncate">Buka WhatsApp & Chat Rian</span>
+                            <i class="fa-solid fa-chevron-up text-[9px]"></i>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Battery / Wifi / Signal -->
+            <div class="flex items-center space-x-1.5 text-white w-12 justify-end">
+                <i class="fa-solid fa-signal text-[10px]"></i>
+                <i class="fa-solid fa-wifi text-[10px]"></i>
+                <i class="fa-solid fa-battery-full text-[11px]"></i>
+            </div>
+        </div>
+
+        <!-- MAIN SCREENS CONTAINER -->
+        <div class="relative z-10 flex-1 w-full h-full overflow-hidden">
+
+            <!-- 1. LOCK SCREEN -->
+            <div id="screen-lock" class="app-screen absolute inset-0 flex flex-col justify-between p-6 pt-16 pb-12 text-center text-white z-40 bg-black/20 backdrop-blur-[2px]">
+                <div class="mt-4 flex flex-col items-center">
+                    <i class="fa-solid fa-lock text-xs mb-2 opacity-80"></i>
+                    <h2 id="lock-date" class="text-xs font-medium opacity-90 uppercase tracking-wider">Minggu, 25 Oktober</h2>
+                    <h1 id="lock-clock" class="text-7xl font-light tracking-tight mt-1">12:00</h1>
+                </div>
+
+                <!-- Live Notification Card -->
+                <div class="bg-black/50 backdrop-blur-xl border border-white/15 rounded-3xl p-4 text-left shadow-2xl my-auto space-y-2">
+                    <div class="flex items-center justify-between text-amber-400 text-xs font-bold">
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-bolt"></i> STATUS ALUR CERITA</span>
+                        <span id="lock-affinity-badge" class="text-[10px] bg-pink-500/20 text-pink-300 px-2 py-0.5 rounded-full border border-pink-500/30">Love Meter: 0%</span>
+                    </div>
+                    <p id="lock-mission-text" class="text-xs text-gray-200 leading-relaxed font-normal">
+                        Misi 1: Cek WhatsApp dan kirim pesan ke Rian untuk menanyakan boba Earl Grey.
+                    </p>
+                    <div id="lock-timer-box" class="hidden bg-amber-500/10 border border-amber-500/30 p-2 rounded-xl flex items-center justify-between">
+                        <span class="text-[10px] text-amber-300 font-medium">🕒 Waktu Tunggu Misi:</span>
+                        <span id="lock-timer-clock" class="text-xs font-mono font-bold text-amber-400">02:00:00</span>
+                    </div>
+                </div>
+
+                <!-- Swipe / Tap to unlock -->
+                <div onclick="unlockPhone()" class="cursor-pointer animate-bounce flex flex-col items-center opacity-90 hover:opacity-100 transition">
+                    <i class="fa-solid fa-chevron-up text-xs mb-1"></i>
+                    <span class="text-[10px] tracking-widest uppercase font-bold text-gray-200">Ketuk Untuk Membuka</span>
+                </div>
+            </div>
+
+            <!-- 2. HOME SCREEN -->
+            <div id="screen-home" class="app-screen absolute inset-0 hidden flex-col justify-between p-6 pt-16 pb-8 z-30">
+                <!-- App Grid -->
+                <div class="grid grid-cols-4 gap-y-6 gap-x-3 mt-2">
+                    
+                    <!-- WhatsApp -->
+                    <div onclick="openApp('whatsapp')" class="flex flex-col items-center cursor-pointer group relative">
+                        <div class="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg group-active:scale-95 transition">
+                            <svg class="w-8 h-8 fill-current" viewBox="0 0 24 24"><path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.964 9.964 0 001.333 4.993L2 22l5.233-1.237a9.96 9.96 0 004.779 1.217h.004c5.505 0 9.988-4.478 9.989-9.984 0-2.669-1.038-5.176-2.925-7.062A9.925 9.925 0 0012.012 2zm5.827 14.195c-.246.693-1.436 1.328-1.973 1.398-.537.07-1.238.324-4.148-.847-3.528-1.42-5.787-5.011-5.964-5.246-.176-.235-1.436-1.906-1.436-3.633 0-1.727.899-2.576 1.219-2.926.32-.35.698-.437.931-.437.234 0 .468.002.667.012.21.009.492-.08.77.587.28.668.956 2.332 1.04 2.506.083.174.138.378.024.608-.114.23-.173.372-.346.578-.173.206-.365.46-.521.618-.173.173-.355.361-.153.708.203.347.902 1.488 1.936 2.41 1.33 1.185 2.451 1.554 2.8 1.728.348.173.551.144.756-.089.206-.232.882-1.028 1.116-1.382.234-.355.468-.292.783-.174.316.118 2.012.948 2.358 1.121.346.173.578.26.663.404.085.143.085.832-.161 1.525z"/></svg>
+                        </div>
+                        <span class="text-[10px] text-white mt-1.5 font-medium drop-shadow">WhatsApp</span>
+                        <span id="badge-wa" class="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full border border-black hidden">1</span>
+                    </div>
+
+                    <!-- X (Twitter) -->
+                    <div onclick="openApp('twitter')" class="flex flex-col items-center cursor-pointer group">
+                        <div class="w-14 h-14 bg-black border border-gray-800 rounded-2xl flex items-center justify-center text-white shadow-lg group-active:scale-95 transition">
+                            <svg class="w-7 h-7 fill-current" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                        </div>
+                        <span class="text-[10px] text-white mt-1.5 font-medium drop-shadow">X</span>
+                    </div>
+
+                    <!-- Instagram -->
+                    <div onclick="openApp('instagram')" class="flex flex-col items-center cursor-pointer group">
+                        <div class="w-14 h-14 bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 rounded-2xl flex items-center justify-center text-white shadow-lg group-active:scale-95 transition">
+                            <svg class="w-7 h-7 fill-current" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                        </div>
+                        <span class="text-[10px] text-white mt-1.5 font-medium drop-shadow">Instagram</span>
+                    </div>
+
+                    <!-- TikTok -->
+                    <div onclick="openApp('tiktok')" class="flex flex-col items-center cursor-pointer group">
+                        <div class="w-14 h-14 bg-black border border-gray-800 rounded-2xl flex items-center justify-center text-white shadow-lg group-active:scale-95 transition">
+                            <svg class="w-7 h-7 fill-current text-white" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.67 2.58-4.8 1.46-1.14 3.33-1.67 5.17-1.48v4.02c-.85-.14-1.74.05-2.47.52-.77.49-1.29 1.31-1.38 2.22-.09.91.24 1.83.88 2.47.63.64 1.53.97 2.44.91 1.15-.02 2.23-.62 2.78-1.63.33-.6.48-1.29.47-1.97.02-3.8.01-7.6.02-11.41z"/></svg>
+                        </div>
+                        <span class="text-[10px] text-white mt-1.5 font-medium drop-shadow">TikTok</span>
+                    </div>
+
+                    <!-- Camera -->
+                    <div onclick="openApp('camera')" class="flex flex-col items-center cursor-pointer group">
+                        <div class="w-14 h-14 bg-zinc-800 border border-zinc-700 rounded-2xl flex items-center justify-center text-gray-200 text-2xl shadow-lg group-active:scale-95 transition">
+                            <i class="fa-solid fa-camera"></i>
+                        </div>
+                        <span class="text-[10px] text-white mt-1.5 font-medium drop-shadow">Kamera</span>
+                    </div>
+
+                    <!-- Photos -->
+                    <div onclick="openApp('photos')" class="flex flex-col items-center cursor-pointer group">
+                        <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-indigo-500 text-2xl shadow-lg group-active:scale-95 transition">
+                            <i class="fa-solid fa-images"></i>
+                        </div>
+                        <span class="text-[10px] text-white mt-1.5 font-medium drop-shadow">Galeri</span>
+                    </div>
+
+                    <!-- Notes -->
+                    <div onclick="openApp('notes')" class="flex flex-col items-center cursor-pointer group">
+                        <div class="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-600 text-2xl shadow-lg group-active:scale-95 transition">
+                            <i class="fa-solid fa-note-sticky"></i>
+                        </div>
+                        <span class="text-[10px] text-white mt-1.5 font-medium drop-shadow">Catatan</span>
+                    </div>
+
+                    <!-- Settings -->
+                    <div onclick="openApp('settings')" class="flex flex-col items-center cursor-pointer group">
+                        <div class="w-14 h-14 bg-slate-700 rounded-2xl flex items-center justify-center text-slate-200 text-2xl shadow-lg group-active:scale-95 transition">
+                            <i class="fa-solid fa-gear"></i>
+                        </div>
+                        <span class="text-[10px] text-white mt-1.5 font-medium drop-shadow">Pengaturan</span>
+                    </div>
+
+                </div>
+
+                <!-- Bottom Dock Bar -->
+                <div class="bg-white/20 backdrop-blur-2xl rounded-3xl p-3 flex justify-around items-center border border-white/20 shadow-2xl">
+                    <div onclick="openApp('whatsapp')" class="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow cursor-pointer">
+                        <svg class="w-7 h-7 fill-current" viewBox="0 0 24 24"><path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.964 9.964 0 001.333 4.993L2 22l5.233-1.237a9.96 9.96 0 004.779 1.217h.004c5.505 0 9.988-4.478 9.989-9.984 0-2.669-1.038-5.176-2.925-7.062A9.925 9.925 0 0012.012 2zm5.827 14.195c-.246.693-1.436 1.328-1.973 1.398-.537.07-1.238.324-4.148-.847-3.528-1.42-5.787-5.011-5.964-5.246-.176-.235-1.436-1.906-1.436-3.633 0-1.727.899-2.576 1.219-2.926.32-.35.698-.437.931-.437.234 0 .468.002.667.012.21.009.492-.08.77.587.28.668.956 2.332 1.04 2.506.083.174.138.378.024.608-.114.23-.173.372-.346.578-.173.206-.365.46-.521.618-.173.173-.355.361-.153.708.203.347.902 1.488 1.936 2.41 1.33 1.185 2.451 1.554 2.8 1.728.348.173.551.144.756-.089.206-.232.882-1.028 1.116-1.382.234-.355.468-.292.783-.174.316.118 2.012.948 2.358 1.121.346.173.578.26.663.404.085.143.085.832-.161 1.525z"/></svg>
+                    </div>
+                    <div onclick="openApp('instagram')" class="w-12 h-12 bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 rounded-2xl flex items-center justify-center text-white shadow cursor-pointer">
+                        <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                    </div>
+                    <div onclick="openApp('tiktok')" class="w-12 h-12 bg-black rounded-2xl flex items-center justify-center text-white shadow cursor-pointer">
+                        <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.67 2.58-4.8 1.46-1.14 3.33-1.67 5.17-1.48v4.02c-.85-.14-1.74.05-2.47.52-.77.49-1.29 1.31-1.38 2.22-.09.91.24 1.83.88 2.47.63.64 1.53.97 2.44.91 1.15-.02 2.23-.62 2.78-1.63.33-.6.48-1.29.47-1.97.02-3.8.01-7.6.02-11.41z"/></svg>
+                    </div>
+                    <div onclick="openApp('camera')" class="w-12 h-12 bg-zinc-800 rounded-2xl flex items-center justify-center text-white text-lg shadow cursor-pointer">
+                        <i class="fa-solid fa-camera"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. WHATSAPP SCREEN -->
+            <div id="screen-whatsapp" class="app-screen absolute inset-0 hidden flex-col bg-gray-950 text-white z-30 pt-12">
+                <div class="px-4 py-3 bg-gray-900/90 backdrop-blur border-b border-gray-800 flex justify-between items-center">
+                    <h1 class="text-xl font-bold text-emerald-500">WhatsApp</h1>
+                    <div class="flex space-x-4 text-gray-400 text-sm">
+                        <i class="fa-solid fa-camera cursor-pointer" onclick="openApp('camera')"></i>
+                        <i class="fa-solid fa-magnifying-glass cursor-pointer"></i>
+                    </div>
+                </div>
+                <div id="wa-chat-list" class="flex-1 overflow-y-auto custom-scroll divide-y divide-gray-900">
+                    <!-- Rendered dynamically -->
+                </div>
+            </div>
+
+            <!-- 4. CHAT ROOM SCREEN -->
+            <div id="screen-chat-room" class="app-screen absolute inset-0 hidden flex-col bg-slate-950 text-white z-35 pt-10">
+                <div class="px-3 py-2.5 bg-gray-900/95 backdrop-blur border-b border-gray-800 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <button onclick="closeChatRoom()" class="text-emerald-500 text-base p-1">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <div class="relative">
+                            <img id="chat-header-avatar" src="" class="w-9 h-9 rounded-full object-cover">
+                            <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-gray-900 rounded-full"></span>
+                        </div>
+                        <div>
+                            <h2 id="chat-header-name" class="text-xs font-bold leading-tight">Nama</h2>
+                            <p id="chat-header-status" class="text-[10px] text-emerald-400">Online</p>
+                        </div>
+                    </div>
+                    <div class="flex space-x-4 text-emerald-500 text-sm pr-2">
+                        <i class="fa-solid fa-video cursor-pointer"></i>
+                        <i class="fa-solid fa-phone cursor-pointer" onclick="triggerCallModal()"></i>
+                    </div>
+                </div>
+                <div id="chat-messages" class="flex-1 overflow-y-auto p-3 space-y-3 custom-scroll bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px]">
+                    <!-- Chat Messages -->
+                </div>
+                <form id="chat-form" onsubmit="sendMessage(event)" class="p-2.5 bg-gray-900 border-t border-gray-800 flex items-center space-x-2">
+                    <input id="chat-input" type="text" placeholder="Ketik pesan..." class="flex-1 bg-gray-800 text-white text-xs rounded-full px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                    <button type="submit" class="w-9 h-9 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full flex items-center justify-center text-xs shadow transition">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- 5. X (TWITTER) SCREEN -->
+            <div id="screen-twitter" class="app-screen absolute inset-0 hidden flex-col bg-black text-white z-30 pt-12">
+                <div class="px-4 py-3 border-b border-gray-800 flex justify-between items-center bg-black/90 backdrop-blur">
+                    <svg class="w-5 h-5 fill-current text-white" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                    <span class="text-xs font-bold tracking-wide">Linimasa AU</span>
+                    <i class="fa-solid fa-sparkles text-amber-400 text-xs"></i>
+                </div>
+                
+                <!-- New Post Box -->
+                <div class="p-3 border-b border-gray-900 bg-gray-950 flex space-x-2">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop" class="w-8 h-8 rounded-full object-cover">
+                    <div class="flex-1">
+                        <input id="tweet-input" type="text" placeholder="Apa yang sedang hangat?" class="w-full bg-transparent text-xs text-white focus:outline-none py-1">
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="text-sky-400 text-xs"><i class="fa-regular fa-image"></i></span>
+                            <button onclick="postTweet()" class="bg-sky-500 text-white font-bold text-[10px] px-3 py-1 rounded-full">Posting</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="twitter-feed" class="flex-1 overflow-y-auto custom-scroll p-3 space-y-4">
+                    <!-- Rendered dynamically -->
+                </div>
+            </div>
+
+            <!-- 6. INSTAGRAM SCREEN -->
+            <div id="screen-instagram" class="app-screen absolute inset-0 hidden flex-col bg-black text-white z-30 pt-12">
+                <div class="px-4 py-2.5 border-b border-gray-900 flex justify-between items-center bg-black/90 backdrop-blur">
+                    <span class="font-serif italic font-bold text-lg tracking-wider">Instagram</span>
+                    <div class="flex space-x-4 text-sm">
+                        <i class="fa-regular fa-heart"></i>
+                        <i class="fa-regular fa-paper-plane"></i>
+                    </div>
+                </div>
+                
+                <!-- Stories Carousel -->
+                <div class="p-3 border-b border-gray-900 flex space-x-3 overflow-x-auto custom-scroll">
+                    <div class="flex flex-col items-center space-y-1 flex-shrink-0 cursor-pointer" onclick="clickIGStory('rian')">
+                        <div class="w-13 h-13 rounded-full p-0.5 bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600">
+                            <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200&auto=format&fit=crop" class="w-12 h-12 rounded-full border-2 border-black object-cover">
+                        </div>
+                        <span class="text-[9px] text-gray-300">rianprtm</span>
+                    </div>
+                    <div class="flex flex-col items-center space-y-1 flex-shrink-0 cursor-pointer" onclick="clickIGStory('dimas')">
+                        <div class="w-13 h-13 rounded-full p-0.5 bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop" class="w-12 h-12 rounded-full border-2 border-black object-cover">
+                        </div>
+                        <span class="text-[9px] text-gray-300">dimas_kc</span>
+                    </div>
+                </div>
+
+                <div id="ig-feed" class="flex-1 overflow-y-auto custom-scroll space-y-6 pb-6">
+                    <!-- Rendered dynamically -->
+                </div>
+            </div>
+
+            <!-- 7. TIKTOK SCREEN -->
+            <div id="screen-tiktok" class="app-screen absolute inset-0 hidden flex-col bg-black text-white z-30 pt-10">
+                <div class="relative flex-1 bg-gray-900 overflow-hidden flex flex-col justify-between p-4 bg-cover bg-center transition-all duration-300" id="tiktok-bg" style="background-image: url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=600&auto=format&fit=crop');">
+                    <div class="absolute inset-0 bg-black/40"></div>
+                    
+                    <!-- Top Navigation -->
+                    <div class="relative z-10 flex justify-center space-x-6 text-xs font-semibold text-gray-300 pt-2">
+                        <span>Mengikuti</span>
+                        <span class="text-white font-bold border-b-2 border-white pb-0.5">Untuk Anda</span>
+                    </div>
+
+                    <!-- Right Sidebar -->
+                    <div class="relative z-10 ml-auto flex flex-col items-center space-y-4 text-xs">
+                        <div class="flex flex-col items-center cursor-pointer" onclick="likeTikTokVideo()">
+                            <div id="tiktok-heart-btn" class="w-10 h-10 rounded-full bg-black/40 backdrop-blur flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-heart text-white"></i>
+                            </div>
+                            <span id="tiktok-likes-count" class="text-[10px] mt-0.5">14.2k</span>
+                        </div>
+                        <div class="flex flex-col items-center cursor-pointer" onclick="interactTikTokComment()">
+                            <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur flex items-center justify-center text-lg text-white">
+                                <i class="fa-solid fa-comment-dots"></i>
+                            </div>
+                            <span class="text-[10px] mt-0.5">1,204</span>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Info -->
+                    <div class="relative z-10 text-left space-y-1 mb-2">
+                        <h4 id="tiktok-author" class="text-sm font-bold">@rianprtm</h4>
+                        <p id="tiktok-caption" class="text-xs text-gray-200">Kencan pertama di Kopi Nanti ☕✨ #AU #RianStory</p>
+                        <div class="flex items-center space-x-2 text-[10px] text-gray-300">
+                            <i class="fa-solid fa-music animate-spin" style="animation-duration: 4s;"></i>
+                            <span class="truncate">Suara Asli - Kopi & Kenangan AU</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 8. CAMERA SCREEN -->
+            <div id="screen-camera" class="app-screen absolute inset-0 hidden flex-col bg-black text-white z-40 pt-10">
+                <!-- Flash Overlay Effect -->
+                <div id="camera-flash" class="absolute inset-0 bg-white z-50 pointer-events-none opacity-0"></div>
+
+                <!-- Viewfinder Area -->
+                <div class="relative flex-1 bg-gray-900 overflow-hidden flex items-center justify-center">
+                    <img id="camera-preview" src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=600&auto=format&fit=crop" class="w-full h-full object-cover transition duration-300">
+                    
+                    <!-- Filter Tag -->
+                    <span id="camera-filter-tag" class="absolute top-4 left-4 text-[10px] bg-black/60 backdrop-blur text-white px-2.5 py-1 rounded-full font-semibold border border-white/20">Filter: Normal</span>
+                </div>
+
+                <!-- Bottom Camera Controls -->
+                <div class="h-32 bg-black px-6 flex items-center justify-between">
+                    <!-- Photo Thumbnail -->
+                    <div onclick="openApp('photos')" class="w-12 h-12 bg-gray-800 rounded-xl overflow-hidden border border-gray-700 cursor-pointer">
+                        <img id="camera-thumb" src="https://images.unsplash.com/photo-1558857563-b371033873b8?q=80&w=200&auto=format&fit=crop" class="w-full h-full object-cover">
+                    </div>
+
+                    <!-- Shutter Button -->
+                    <button onclick="takePhoto()" class="w-16 h-16 rounded-full border-4 border-white p-1 flex items-center justify-center active:scale-90 transition">
+                        <div class="w-full h-full bg-white rounded-full"></div>
+                    </button>
+
+                    <!-- Filter Toggle -->
+                    <button onclick="toggleCameraFilter()" class="w-12 h-12 bg-gray-900 rounded-full flex items-center justify-center text-amber-400 text-lg border border-gray-800">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 9. PHOTOS SCREEN -->
+            <div id="screen-photos" class="app-screen absolute inset-0 hidden flex-col bg-black text-white z-30 pt-12">
+                <div class="px-4 py-3 border-b border-gray-900 flex justify-between items-center">
+                    <h1 class="text-base font-bold">Galeri Kenangan AU</h1>
+                    <span id="photos-count-badge" class="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-full">3 Foto</span>
+                </div>
+                <div id="photos-grid" class="flex-1 overflow-y-auto custom-scroll p-3 grid grid-cols-2 gap-2">
+                    <!-- Rendered dynamically -->
+                </div>
+            </div>
+
+            <!-- 10. NOTES SCREEN -->
+            <div id="screen-notes" class="app-screen absolute inset-0 hidden flex-col bg-stone-950 text-white z-30 pt-12">
+                <div class="px-4 py-3 border-b border-stone-800 flex justify-between items-center">
+                    <h1 class="text-base font-bold text-amber-400">Catatan Petunjuk AU</h1>
+                    <i class="fa-solid fa-pen-to-square text-amber-400"></i>
+                </div>
+                <div class="flex-1 overflow-y-auto custom-scroll p-4 space-y-3">
+                    <div class="bg-stone-900 p-4 rounded-2xl border border-stone-800">
+                        <h3 class="text-xs font-bold text-amber-300 mb-1">Daftar Log Misi Aktif</h3>
+                        <p id="notes-content" class="text-xs text-gray-300 leading-relaxed">
+                            Loading notes...
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 11. SETTINGS SCREEN -->
+            <div id="screen-settings" class="app-screen absolute inset-0 hidden flex-col bg-gray-950 text-white z-30 pt-12">
+                <div class="px-4 py-3 border-b border-gray-800">
+                    <h1 class="text-base font-bold">Pengaturan & Alur Misi</h1>
+                </div>
+                <div class="p-4 space-y-4 flex-1 overflow-y-auto custom-scroll">
+                    <!-- Love Meter -->
+                    <div class="bg-gray-900 p-4 rounded-2xl border border-gray-800">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs text-gray-400 font-semibold">Tingkat Afinitas / Cinta</span>
+                            <span id="settings-affinity-text" class="text-xs font-bold text-pink-400">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-800 h-2.5 rounded-full overflow-hidden">
+                            <div id="settings-affinity-bar" class="bg-gradient-to-r from-pink-500 to-rose-400 h-full w-[0%] transition-all duration-500"></div>
+                        </div>
+                    </div>
+
+                    <!-- Fast Forward Timer Demo -->
+                    <div class="bg-gray-900 p-4 rounded-2xl border border-gray-800 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs text-gray-200 font-bold block">Buka Timer Kunci Misi (Demo)</span>
+                            <span class="text-[10px] text-gray-400">Lewati countdown waktu 2 jam secara instan</span>
+                        </div>
+                        <button onclick="skipTimerDemo()" class="bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs px-3 py-1.5 rounded-xl transition">
+                            Skip ⏩
+                        </button>
+                    </div>
+
+                    <!-- Select Mission Manual -->
+                    <div class="bg-gray-900 p-4 rounded-2xl border border-gray-800">
+                        <span class="text-xs text-gray-400 font-semibold">Pilih Misi Manual (Testing 1-50)</span>
+                        <select id="mission-selector" onchange="changeMissionManual(this.value)" class="w-full bg-gray-800 text-white text-xs p-2.5 rounded-xl mt-2 border border-gray-700 focus:outline-none">
+                            <!-- Options generated dynamically -->
+                        </select>
+                    </div>
+
+                    <!-- Reset Progress Button -->
+                    <button onclick="resetProgress()" class="w-full py-3 bg-red-600/20 text-red-400 border border-red-600/30 rounded-2xl text-xs font-bold hover:bg-red-600/30 transition">
+                        Reset Ulang Seluruh Cerita
+                    </button>
+                </div>
+            </div>
+
+            <!-- TOAST NOTIFICATION -->
+            <div id="toast-notification" class="hidden absolute top-16 left-1/2 -translate-x-1/2 bg-red-600/90 backdrop-blur-md text-white text-xs px-4 py-2 rounded-full shadow-2xl z-50 pointer-events-none border border-red-400/50">
+                <span id="toast-message">Misi belum sampai!</span>
+            </div>
+
+            <!-- PHONE CALL MODAL -->
+            <div id="call-modal" class="hidden absolute inset-0 bg-gray-950/95 backdrop-blur-xl z-50 flex-col items-center justify-between p-12 text-center text-white">
+                <div class="mt-8">
+                    <img id="call-avatar" src="" class="w-24 h-24 rounded-full object-cover border-4 border-gray-800 mx-auto shadow-2xl mb-4">
+                    <h2 id="call-name" class="text-xl font-bold">Rian Pratama</h2>
+                    <p id="call-status" class="text-xs text-emerald-400 mt-1">Memanggil...</p>
+                </div>
+                <div class="w-full max-w-[200px] mb-8 flex justify-center">
+                    <button onclick="endCallModal()" class="w-16 h-16 bg-red-600 text-white rounded-full flex items-center justify-center text-2xl shadow-xl active:scale-95 transition">
+                        <i class="fa-solid fa-phone-slash"></i>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- BOTTOM HOME NAVIGATION BAR -->
+        <div class="relative z-50 w-full py-2.5 flex justify-center items-center pointer-events-auto">
+            <div onclick="goHome()" class="w-32 h-1 bg-white/60 hover:bg-white rounded-full cursor-pointer transition"></div>
+        </div>
+
     </div>
-    <div class="status-bar">
-      <span id="clock">22:15</span>
-      <div style="display:flex; gap:5px; align-items:center;">
-        <svg width="14" height="10" viewBox="0 0 14 10" fill="#fff"><path d="M0 8h2v2H0V8zm3-3h2v5H3V5zm3-3h2v8H6V2zm3-2h2v10H9V0z"/></svg>
-        <svg width="16" height="10" viewBox="0 0 16 10" fill="#fff"><rect x="0" y="0" width="13" height="10" rx="2" fill="none" stroke="#fff" stroke-width="1"/><rect x="2" y="2" width="8" height="6" fill="#fff"/></svg>
-      </div>
-    </div>
 
-    <!-- 1. Home Screen -->
-    <div class="screen home-screen active" id="homeScreen">
-      <div class="app-icon" onclick="openApp('whatsappScreen')">
-        <div class="icon-box" style="background:#25D366;">
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="#fff"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.205 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
-        </div>
-        <span class="app-name">WhatsApp</span>
-      </div>
+    <!-- MAIN JAVASCRIPT LOGIC -->
+    <script>
+        // GLOBAL GAME STATE
+        let currentMission = 1;
+        let activeChatCharacter = null;
+        let isIslandExpanded = false;
+        let affinityScore = 0;
+        let cameraFilterIndex = 0;
+        const cameraFilters = ["Normal", "Vintage", "Black & White", "Cyberpunk"];
+        
+        // TIMED MISSION LOCK STATE
+        let isMissionTimeLocked = false;
+        let lockTimerSeconds = 0;
+        let lockTimerInterval = null;
 
-      <div class="app-icon" onclick="openApp('notesScreen')">
-        <div class="icon-box" style="background:#e6b800;">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="#fff"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
-        </div>
-        <span class="app-name">Notes</span>
-      </div>
+        // CHARACTERS CONFIG
+        const CHARACTERS = {
+            rian: { id: "rian", name: "Rian Pratama", avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200&auto=format&fit=crop", unlockedAtMission: 1, status: "Online" },
+            dimas: { id: "dimas", name: "Dimas", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop", unlockedAtMission: 5, status: "Online" },
+            siti: { id: "siti", name: "Siti", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop", unlockedAtMission: 8, status: "Online" },
+            ibu: { id: "ibu", name: "Ibu", avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop", unlockedAtMission: 15, status: "Online" },
+            maya: { id: "maya", name: "Maya", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop", unlockedAtMission: 25, status: "Online" }
+        };
 
-      <div class="app-icon" onclick="openApp('xScreen')">
-        <div class="icon-box" style="background:#111;">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-        </div>
-        <span class="app-name">X</span>
-      </div>
+        // 50+ EXTENSIVE AU MISSIONS GENERATION
+        const MISSIONS = {};
+        const missionRaw = [
+            /* 1-5 */
+            { title: "Misi 1", desc: "Sapa Rian di WA soal boba Earl Grey yang salah kirim.", hint: "Buka WA & Chat Rian", req: "whatsapp", timer: 0 },
+            { title: "Misi 2", desc: "Sukai tweet Rian tentang kejadian boba salah kirim.", hint: "Sukai Tweet Rian di X", req: "twitter", timer: 0 },
+            { title: "Misi 3", desc: "Tonton Story Instagram Rian & kirim reaksi emoji.", hint: "Buka IG & Tonton Story", req: "instagram", timer: 0 },
+            { title: "Misi 4", desc: "Balas chat Rian tentang rasa boba kesukaanmu.", hint: "Chat Rian di WA", req: "whatsapp", timer: 0 },
+            { title: "Misi 5", desc: "Tunggu konfirmasi pesanan dari Dimas. [Timer Lock 2 Jam]", hint: "Tunggu waktu unlock atau Skip", req: "whatsapp", timer: 7200 }, // 2 hours
+            
+            /* 6-10 */
+            { title: "Misi 6", desc: "Chat Dimas untuk menanyakan rahasia Rian.", hint: "Chat Dimas di WA", req: "whatsapp", timer: 0 },
+            { title: "Misi 7", desc: "Ambil foto selfie/kopi pakai Kamera HP-mu.", hint: "Ambil foto pakai Kamera", req: "camera", timer: 0 },
+            { title: "Misi 8", desc: "Siti menghubungimu! Tanya pendapat Siti di WA.", hint: "Chat Siti di WA", req: "whatsapp", timer: 0 },
+            { title: "Misi 9", desc: "Buka Galeri Photos untuk melihat album kencan pertama.", hint: "Buka Aplikasi Galeri", req: "photos", timer: 0 },
+            { title: "Misi 10", desc: "Telepon Rian untuk menentukan jam janjian kencan! [Timer Lock 3 Jam]", hint: "Telepon Rian atau Skip", req: "whatsapp", timer: 10800 }, // 3 hours
 
-      <div class="app-icon" onclick="openApp('photosScreen')">
-        <div class="icon-box" style="background:#fff;">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="#ff5252"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
-        </div>
-        <span class="app-name">Photos</span>
-      </div>
-    </div>
+            /* 11-15 */
+            { title: "Misi 11", desc: "Kirim postingan tweet baru di X tentang Kopi Nanti.", hint: "Posting Tweet Baru", req: "twitter", timer: 0 },
+            { title: "Misi 12", desc: "Tonton TikTok video buatan Rian dan berikan Like.", hint: "Buka TikTok & Like", req: "tiktok", timer: 0 },
+            { title: "Misi 13", desc: "Tanya Rian di WA tentang pakaian apa yang cocok untuk kencan.", hint: "Chat Rian di WA", req: "whatsapp", timer: 0 },
+            { title: "Misi 14", desc: "Cek Catatan Petunjuk AU di aplikasi Notes.", hint: "Buka Aplikasi Notes", req: "notes", timer: 0 },
+            { title: "Misi 15", desc: "Ibu mengingatkanmu untuk pulang tidak terlalu larut. [Timer Lock 2 Jam]", hint: "Chat Ibu di WA", req: "whatsapp", timer: 7200 },
 
-    <!-- 2. WhatsApp List Screen -->
-    <div class="screen" id="whatsappScreen">
-      <div class="app-header">WhatsApp</div>
-      <div class="app-content" style="padding:0;">
-        <div class="list-item" onclick="openChat('rian', 'Rian Pratama')">
-          <div class="avatar">R</div>
-          <div>
-            <div style="font-weight:600; font-size:14px;">Rian Pratama</div>
-            <div style="font-size:12px; color:#888;" id="lastMsg-rian">Permisi Kak, ini pesanan boba...</div>
-          </div>
-        </div>
-        <div class="list-item" onclick="openChat('dimas', 'Dimas (Teman Rian)')">
-          <div class="avatar" style="background:#3498db;">D</div>
-          <div>
-            <div style="font-weight:600; font-size:14px;">Dimas</div>
-            <div style="font-size:12px; color:#888;" id="lastMsg-dimas">Woi bro! Rian cerita apaan ke lu?</div>
-          </div>
-        </div>
-        <div class="list-item" onclick="openChat('siti', 'Siti Sahabat')">
-          <div class="avatar" style="background:#e74c3c;">S</div>
-          <div>
-            <div style="font-weight:600; font-size:14px;">Siti</div>
-            <div style="font-size:12px; color:#888;" id="lastMsg-siti">Btw gimana cowok boba itu?</div>
-          </div>
-        </div>
-      </div>
-    </div>
+            /* 16-20 */
+            { title: "Misi 16", desc: "Kirim foto minuman kopi ke Rian lewat WA.", hint: "Chat Rian Kirim Foto", req: "whatsapp", timer: 0 },
+            { title: "Misi 17", desc: "Sukai postingan feed Instagram Rian.", hint: "Like Feed IG Rian", req: "instagram", timer: 0 },
+            { title: "Misi 18", desc: "Tanyakan pada Siti mengenai saran hadiah untuk Rian.", hint: "Chat Siti di WA", req: "whatsapp", timer: 0 },
+            { title: "Misi 19", desc: "Posting cerita baru di X mengenai perasaanmu.", hint: "Posting Tweet di X", req: "twitter", timer: 0 },
+            { title: "Misi 20", desc: "Rian mengajakmu jalan-jalan sore di taman. [Timer Lock 2 Jam]", hint: "Chat Rian di WA", req: "whatsapp", timer: 7200 },
 
-    <!-- 3. Chat Room Screen -->
-    <div class="screen" id="chatRoomScreen">
-      <div class="chat-container">
-        <div class="chat-header">
-          <div class="back-btn" onclick="openApp('whatsappScreen')">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="#00a884"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-          </div>
-          <div class="avatar" id="chatAvatar">R</div>
-          <div style="flex:1;">
-            <div style="font-weight:600; font-size:14px;" id="chatTitle">Rian Pratama</div>
-            <div style="font-size:10px; color:#00a884;" id="chatStatus">Online</div>
-          </div>
-        </div>
+            /* 21-25 */
+            { title: "Misi 21", desc: "Tatap muka pertama! Chat Rian kalau kamu sudah sampai di lokasi.", hint: "Chat Rian di WA", req: "whatsapp", timer: 0 },
+            { title: "Misi 22", desc: "Abadikan momen bersama menggunakan Kamera.", hint: "Ambil Foto di Kamera", req: "camera", timer: 0 },
+            { title: "Misi 23", desc: "Tonton komentar di TikTok Rian tentang foto kalian.", hint: "Buka Aplikasi TikTok", req: "tiktok", timer: 0 },
+            { title: "Misi 24", desc: "Dimas menggoda Rian di grup. Cek chat Dimas.", hint: "Chat Dimas di WA", req: "whatsapp", timer: 0 },
+            { title: "Misi 25", desc: "Maya (rekan kerja Rian) mengirim pesan profesional di WA.", hint: "Chat Maya di WA", req: "whatsapp", timer: 0 },
 
-        <div class="chat-messages" id="messageList"></div>
+            /* 26-30 */
+            { title: "Misi 26", desc: "Klarifikasi kesalahpahaman dengan Rian mengenai Maya.", hint: "Chat Rian di WA", req: "whatsapp", timer: 0 },
+            { title: "Misi 27", desc: "Cek foto terbaru di Galeri Photos.", hint: "Buka Galeri Photos", req: "photos", timer: 0 },
+            { title: "Misi 28", desc: "Siti memintamu menceritakan momen romantis tadi.", hint: "Chat Siti di WA", req: "whatsapp", timer: 0 },
+            { title: "Misi 29", desc: "Posting tweet romantis terselubung di X.", hint: "Posting Tweet di X", req: "twitter", timer: 0 },
+            { title: "Misi 30", desc: "Rian menyiapkan kejutan di Pantai Senja! [Timer Lock 3 Jam]", hint: "Tunggu Timer atau Skip", req: "whatsapp", timer: 10800 },
 
-        <div class="chat-input-bar">
-          <input type="text" class="chat-input" id="chatInput" placeholder="Ketik pesan..." onkeypress="handleKeyPress(event)">
-          <button class="send-btn" onclick="sendMessage()">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-          </button>
-        </div>
-      </div>
-    </div>
+            /* 31-35 */
+            { title: "Misi 31", desc: "Chat Rian untuk mengonfirmasi keberangkatan ke Pantai Senja.", hint: "Chat Rian di WA", req: "whatsapp", timer: 0 },
+            { title: "Misi 32", desc: "Ambil foto pemandangan pantai pakai Kamera.", hint: "Gunakan Kamera HP", req: "camera", timer: 0 },
+            { title: "Misi 33", desc: "Tonton video Pantai Senja di TikTok.", hint: "Cek TikTok Video", req: "tiktok", timer: 0 },
+            { title: "Misi 34", desc: "Sukai postingan Instagram Pantai Senja buatan Rian.", hint: "Like Post IG Rian", req: "instagram", timer: 0 },
+            { title: "Misi 35", desc: "Ibu menanyakan keberadaanmu. Balas pesan Ibu di WA.", hint: "Chat Ibu di WA", req: "whatsapp", timer: 0 },
 
-    <!-- 4. Notes Screen -->
-    <div class="screen" id="notesScreen">
-      <div class="app-header">Notes</div>
-      <div class="app-content">
-        <div style="background:#1c1c1e; padding:15px; border-radius:12px; margin-bottom:10px;">
-          <h4 style="color:#e6b800; margin-bottom:8px;">Protocol 07</h4>
-          <p style="font-size:12px; color:#ccc;">Catatan terkunci: Kamu adalah pemeran utama di cerita ini. Ikuti setiap petunjuk misi di Dynamic Island!</p>
-        </div>
-      </div>
-    </div>
+            /* 36-40 */
+            { title: "Misi 36", desc: "Tanyakan perasaan Rian selama perjalanan ini di WA.", hint: "Chat Rian di WA", req: "whatsapp", timer: 0 },
+            { title: "Misi 37", desc: "Dimas mengirimkan pesan kocak tentang hadiah pantai.", hint: "Chat Dimas di WA", req: "whatsapp", timer: 0 },
+            { title: "Misi 38", desc: "Cek Catatan Petunjuk di Notes untuk kode rahasia.", hint: "Buka Aplikasi Notes", req: "notes", timer: 0 },
+            { title: "Misi 39", desc: "Buka Galeri untuk menyimpan momen Pantai Senja.", hint: "Buka Galeri Photos", req: "photos", timer: 0 },
+            { title: "Misi 40", desc: "Rian memintamu meneleponnya malam ini. [Timer Lock 2 Jam]", hint: "Telepon Rian di WA", req: "whatsapp", timer: 7200 },
 
-    <!-- 5. X / Twitter Screen -->
-    <div class="screen" id="xScreen">
-      <div class="app-header">X</div>
-      <div class="app-content">
-        <div style="border-bottom:1px solid #222; padding-bottom:12px; margin-bottom:12px;">
-          <div style="font-weight:600; font-size:13px;">Rian Pratama @rian_design</div>
-          <p style="font-size:13px; margin-top:5px;">Niatnya nganterin boba buat temen, malah nyasar ke pagar orang lain wkwk.</p>
-        </div>
-      </div>
-    </div>
+            /* 41-45 */
+            { title: "Misi 41", desc: "Lakukan panggilan suara malam dengan Rian di WA.", hint: "Telepon Rian di WA", req: "whatsapp", timer: 0 },
+            { title: "Misi 42", desc: "Posting ucapan selamat malam di X.", hint: "Posting Tweet di X", req: "twitter", timer: 0 },
+            { title: "Misi 43", desc: "Siti mengucapkan selamat atas perkembangan hubunganmu.", hint: "Chat Siti di WA", req: "whatsapp", timer: 0 },
+            { title: "Misi 44", desc: "Maya mengucapkan selamat bekerja sama kembali.", hint: "Chat Maya di WA", req: "whatsapp", timer: 0 },
+            { title: "Misi 45", desc: "Buka TikTok untuk melihat kompilasi video kenangan kalian.", hint: "Cek TikTok Video", req: "tiktok", timer: 0 },
 
-    <!-- 6. Photos Screen -->
-    <div class="screen" id="photosScreen">
-      <div class="app-header">Photos</div>
-      <div class="app-content" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:10px;">
-        <div style="background:#222; height:100px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:11px; color:#888;">[Foto Boba]</div>
-        <div style="background:#222; height:100px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:11px; color:#888;">[Foto Martabak]</div>
-      </div>
-    </div>
+            /* 46-50+ */
+            { title: "Misi 46", desc: "Tanyakan pada Rian apa rencana masa depan kalian.", hint: "Chat Rian di WA", req: "whatsapp", timer: 0 },
+            { title: "Misi 47", desc: "Sukai foto profil terbaru Rian di Instagram.", hint: "Like Profil IG Rian", req: "instagram", timer: 0 },
+            { title: "Misi 48", desc: "Ibu memberikan restu dan menyukai Rian.", hint: "Chat Ibu di WA", req: "whatsapp", timer: 0 },
+            { title: "Misi 49", desc: "Ambil foto kenangan akhir menggunakan Kamera.", hint: "Gunakan Kamera", req: "camera", timer: 0 },
+            { title: "Misi 50", desc: "Pengungkapan Perasaan Rian & Happy Ending AU!", hint: "Chat Rian untuk Tamat", req: "whatsapp", timer: 0 }
+        ];
 
-    <!-- Home Indicator -->
-    <div class="home-bar" onclick="openApp('homeScreen')"></div>
-  </div>
-
-  <script>
-    let activeCharacter = 'rian';
-    let currentMission = 1;
-    let chatHistories = {
-      rian: [{ sender: 'model', text: 'Permisi Kak, ini pesanan boba Earl Grey-nya sudah di depan pagar ya. Mau ditaruh di mana?', time: '22:15' }],
-      dimas: [{ sender: 'model', text: 'Woi bro! Rian cerita apaan ke lu?', time: '22:20' }],
-      siti: [{ sender: 'model', text: 'Btw gimana cowok boba itu? Cerita dong!', time: '22:22' }]
-    };
-
-    function updateClock() {
-      const now = new Date();
-      document.getElementById('clock').innerText = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-    }
-    setInterval(updateClock, 1000);
-    updateClock();
-
-    function openApp(screenId) {
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById(screenId).classList.add('active');
-    }
-
-    function openChat(charKey, title) {
-      activeCharacter = charKey;
-      document.getElementById('chatTitle').innerText = title;
-      document.getElementById('chatAvatar').innerText = title.charAt(0);
-      openApp('chatRoomScreen');
-      renderMessages();
-    }
-
-    function renderMessages() {
-      const container = document.getElementById('messageList');
-      container.innerHTML = '';
-      const list = chatHistories[activeCharacter] || [];
-
-      list.forEach(msg => {
-        const div = document.createElement('div');
-        div.className = `msg ${msg.sender === 'user' ? 'outgoing' : 'incoming'}`;
-        div.innerHTML = `${msg.text} <span class="msg-time">${msg.time}</span>`;
-        container.appendChild(div);
-      });
-
-      container.scrollTop = container.scrollHeight;
-    }
-
-    function handleKeyPress(e) {
-      if (e.key === 'Enter') sendMessage();
-    }
-
-    async function sendMessage() {
-      const input = document.getElementById('chatInput');
-      const text = input.value.trim();
-      if (!text) return;
-
-      const time = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-      
-      if (!chatHistories[activeCharacter]) chatHistories[activeCharacter] = [];
-      chatHistories[activeCharacter].push({ sender: 'user', text, time });
-      
-      input.value = '';
-      renderMessages();
-
-      // Tampilkan indikator ketik
-      document.getElementById('chatStatus').innerText = 'sedang mengetik...';
-
-      try {
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            character: activeCharacter,
-            userMessage: text,
-            history: chatHistories[activeCharacter],
-            currentMission: currentMission
-          })
+        missionRaw.forEach((m, idx) => {
+            MISSIONS[idx + 1] = m;
         });
 
-        const data = await response.json();
-        const replyText = data.reply || "Aduh maaf, koneksiku agak lambat nih.";
+        // CHAT HISTORIES STORE
+        const chatHistories = {
+            rian: [{ sender: 'model', text: 'Halo! Sumpah maaf banget ya, boba Earl Grey tadi salah kirim ke rumah kamu. Kirana salah kasih nomor 😅' }],
+            dimas: [{ sender: 'model', text: 'Bro, si Rian cerita gak soal martabak manis yang dikirim tadi? Hahaha' }],
+            siti: [{ sender: 'model', text: 'Sist! Katanya Rian makin rajin ngechat lo ya?' }],
+            ibu: [{ sender: 'model', text: 'Nak, jangan tidur terlalu malam ya.' }],
+            maya: [{ sender: 'model', text: 'Halo, file desain banner kemarin sudah dirapikan Rian ya.' }]
+        };
 
-        chatHistories[activeCharacter].push({
-          sender: 'model',
-          text: replyText,
-          time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-        });
+        // TWITTER FEED DATA
+        let twitterPosts = [
+            { id: 1, author: "Rian Pratama", handle: "@rianprtm", avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200&auto=format&fit=crop", content: "Hari ini random banget, salah kirim boba ke rumah cewek cantik wkwk 😅🧋", likes: 42, liked: false },
+            { id: 2, author: "Dimas K.", handle: "@dimaskuncoro", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop", content: "Anak desain kalau lagi bucin emang beda kelakuannya brosist 😂", likes: 128, liked: false }
+        ];
 
-      } catch (err) {
-        chatHistories[activeCharacter].push({
-          sender: 'model',
-          text: "Gagal terhubung ke jaringan server.",
-          time: time
-        });
-      }
+        // INSTAGRAM FEED DATA
+        let igPosts = [
+            { id: 1, author: "rianprtm", avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200&auto=format&fit=crop", image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=600&auto=format&fit=crop", caption: "Secangkir kopi & perbincangan sore di Kopi Nanti ☕✨", likes: 215, liked: false }
+        ];
 
-      document.getElementById('chatStatus').innerText = 'Online';
-      renderMessages();
-    }
-  </script>
+        // PHOTOS STORE
+        let userCapturedPhotos = [
+            { id: 1, title: "Boba Earl Grey", img: "https://images.unsplash.com/photo-1558857563-b371033873b8?q=80&w=400&auto=format&fit=crop" },
+            { id: 2, title: "Kopi Nanti", img: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=400&auto=format&fit=crop" },
+            { id: 3, title: "Pantai Senja", img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=400&auto=format&fit=crop" }
+        ];
+
+        // INITIALIZATION
+        window.onload = function() {
+            updateClock();
+            setInterval(updateClock, 1000);
+            renderChatList();
+            renderTwitterFeed();
+            renderIGFeed();
+            renderGalleryPhotos();
+            setupMissionSelector();
+            updateMissionUI();
+        };
+
+        // CLOCK SYSTEM
+        function updateClock() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+            document.getElementById('status-clock').innerText = timeStr;
+            document.getElementById('lock-clock').innerText = timeStr;
+            
+            const options = { weekday: 'long', day: 'numeric', month: 'long' };
+            document.getElementById('lock-date').innerText = now.toLocaleDateString('id-ID', options);
+        }
+
+        // UNLOCK PHONE
+        function unlockPhone() {
+            document.getElementById('screen-lock').classList.add('hidden');
+            document.getElementById('screen-home').classList.remove('hidden');
+            document.getElementById('screen-home').classList.add('flex');
+        }
+
+        // GO HOME
+        function goHome() {
+            const screens = ['screen-whatsapp', 'screen-twitter', 'screen-instagram', 'screen-tiktok', 'screen-camera', 'screen-photos', 'screen-notes', 'screen-settings', 'screen-chat-room'];
+            screens.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.classList.add('hidden');
+                    el.classList.remove('flex');
+                }
+            });
+            document.getElementById('screen-home').classList.remove('hidden');
+            document.getElementById('screen-home').classList.add('flex');
+        }
+
+        // OPEN APP
+        function openApp(appName) {
+            if (isMissionTimeLocked) {
+                showToast("Misi berikutnya masih terkunci waktu! Harap tunggu timer.");
+            }
+
+            document.getElementById('screen-home').classList.add('hidden');
+            document.getElementById('screen-home').classList.remove('flex');
+
+            const targetEl = document.getElementById(`screen-${appName}`);
+            if (targetEl) {
+                targetEl.classList.remove('hidden');
+                targetEl.classList.add('flex');
+            }
+
+            if (appName === 'whatsapp') renderChatList();
+            if (appName === 'photos') renderGalleryPhotos();
+
+            // Automatic progression for specific app open tasks
+            const m = MISSIONS[currentMission];
+            if (m && m.req === appName && m.timer === 0) {
+                if (appName === 'photos' || appName === 'notes') {
+                    advanceMission(currentMission + 1, `Misi ${currentMission} Selesai! Kamu membuka ${appName.toUpperCase()}.`);
+                }
+            }
+        }
+
+        // DYNAMIC ISLAND TOGGLE
+        function toggleIslandExpand() {
+            const island = document.getElementById('dynamic-island');
+            const collapsedContent = document.getElementById('island-collapsed-content');
+            const expandedContent = document.getElementById('island-expanded-content');
+
+            if (isIslandExpanded) {
+                island.classList.remove('island-expanded');
+                island.classList.add('island-collapsed');
+                expandedContent.classList.add('hidden');
+                collapsedContent.classList.remove('hidden');
+                isIslandExpanded = false;
+            } else {
+                island.classList.remove('island-collapsed');
+                island.classList.add('island-expanded');
+                collapsedContent.classList.add('hidden');
+                expandedContent.classList.remove('hidden');
+                isIslandExpanded = true;
+            }
+        }
+
+        // SHOW TOAST MESSAGE
+        function showToast(msg) {
+            const toast = document.getElementById('toast-notification');
+            const toastMsg = document.getElementById('toast-message');
+            toastMsg.innerText = msg;
+            toast.classList.remove('hidden');
+            toast.classList.add('animate-toast');
+
+            setTimeout(() => {
+                toast.classList.add('hidden');
+                toast.classList.remove('animate-toast');
+            }, 3000);
+        }
+
+        // ADVANCE NARRATIVE MISSION
+        function advanceMission(nextM, msg) {
+            currentMission = nextM;
+            affinityScore = Math.min(100, Math.floor((currentMission / 50) * 100));
+            
+            const nextMData = MISSIONS[currentMission];
+            if (nextMData && nextMData.timer > 0) {
+                startMissionTimer(nextMData.timer);
+            } else {
+                isMissionTimeLocked = false;
+                clearInterval(lockTimerInterval);
+            }
+
+            updateMissionUI();
+            showToast(msg);
+        }
+
+        // START TIMER LOCK
+        function startMissionTimer(seconds) {
+            isMissionTimeLocked = true;
+            lockTimerSeconds = seconds;
+            
+            clearInterval(lockTimerInterval);
+            lockTimerInterval = setInterval(() => {
+                lockTimerSeconds--;
+                updateTimerDisplay();
+
+                if (lockTimerSeconds <= 0) {
+                    clearInterval(lockTimerInterval);
+                    isMissionTimeLocked = false;
+                    updateMissionUI();
+                    showToast(`Waktu tunggu selesai! Misi ${currentMission} terbuka.`);
+                }
+            }, 1000);
+
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            const h = Math.floor(lockTimerSeconds / 3600).toString().padStart(2, '0');
+            const m = Math.floor((lockTimerSeconds % 3600) / 60).toString().padStart(2, '0');
+            const s = (lockTimerSeconds % 60).toString().padStart(2, '0');
+            const formatted = `${h}:${m}:${s}`;
+
+            document.getElementById('island-timer-clock').innerText = formatted;
+            document.getElementById('lock-timer-clock').innerText = formatted;
+        }
+
+        function skipTimerDemo() {
+            if (isMissionTimeLocked) {
+                lockTimerSeconds = 0;
+                clearInterval(lockTimerInterval);
+                isMissionTimeLocked = false;
+                updateMissionUI();
+                showToast("Timer berhasil di-skip! Misi siap dikerjakan.");
+            } else {
+                showToast("Tidak ada timer yang sedang berjalan saat ini.");
+            }
+        }
+
+        // UPDATE MISSION UI
+        function updateMissionUI() {
+            const m = MISSIONS[currentMission] || { title: `Misi ${currentMission}`, desc: "Kisah AU telah tamat! Selamat!", hint: "Tamat", req: "whatsapp" };
+
+            document.getElementById('island-mission-title').innerText = m.title;
+            document.getElementById('island-mission-badge').innerText = `${m.title} / 50`;
+            document.getElementById('island-mission-desc').innerText = m.desc;
+            document.getElementById('island-step-hint').innerText = m.hint;
+            document.getElementById('lock-mission-text').innerText = `${m.title}: ${m.desc}`;
+            document.getElementById('notes-content').innerHTML = `<b>${m.title}</b>: ${m.desc}<br><span class='text-emerald-400 font-bold'>Petunjuk: ${m.hint}</span>`;
+            
+            // Timer boxes toggle
+            if (isMissionTimeLocked) {
+                document.getElementById('island-timer-box').classList.remove('hidden');
+                document.getElementById('lock-timer-box').classList.remove('hidden');
+            } else {
+                document.getElementById('island-timer-box').classList.add('hidden');
+                document.getElementById('lock-timer-box').classList.add('hidden');
+            }
+
+            // Affinity Bar
+            document.getElementById('lock-affinity-badge').innerText = `Love Meter: ${affinityScore}%`;
+            document.getElementById('settings-affinity-text').innerText = `${affinityScore}%`;
+            document.getElementById('settings-affinity-bar').style.width = `${affinityScore}%`;
+
+            renderChatList();
+        }
+
+        // RENDER WHATSAPP CHAT LIST
+        function renderChatList() {
+            const container = document.getElementById('wa-chat-list');
+            container.innerHTML = '';
+
+            Object.values(CHARACTERS).forEach(char => {
+                const isUnlocked = currentMission >= char.unlockedAtMission;
+                const lastMsg = chatHistories[char.id].slice(-1)[0]?.text || 'Belum ada pesan';
+
+                const item = document.createElement('div');
+                item.className = `p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-900/80 transition ${!isUnlocked ? 'opacity-50' : ''}`;
+                
+                item.onclick = () => {
+                    if (isUnlocked) {
+                        openChatRoom(char.id);
+                    } else {
+                        showToast(`Misi belum terbuka! Selesaikan Misi ${char.unlockedAtMission} untuk membuka chat ${char.name}.`);
+                    }
+                };
+
+                item.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="relative">
+                            <img src="${char.avatar}" class="w-11 h-11 rounded-full object-cover">
+                            ${!isUnlocked ? `<div class="absolute inset-0 bg-black/75 rounded-full flex items-center justify-center text-xs text-amber-400"><i class="fa-solid fa-lock"></i></div>` : ''}
+                        </div>
+                        <div>
+                            <h3 class="text-xs font-bold text-white flex items-center gap-1.5">
+                                ${char.name}
+                                ${!isUnlocked ? `<span class="text-[8px] bg-red-900/50 text-red-300 px-1.5 py-0.5 rounded border border-red-700/50">Terkunci</span>` : ''}
+                            </h3>
+                            <p class="text-[11px] ${isUnlocked ? 'text-gray-400' : 'text-amber-500/80'} truncate max-w-[170px] mt-0.5">
+                                ${isUnlocked ? lastMsg : 'Misi belum terbuka'}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] text-gray-500">12:00</span>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // OPEN CHAT ROOM
+        function openChatRoom(charId) {
+            activeChatCharacter = CHARACTERS[charId];
+            document.getElementById('screen-whatsapp').classList.add('hidden');
+            document.getElementById('screen-chat-room').classList.remove('hidden');
+            document.getElementById('screen-chat-room').classList.add('flex');
+
+            document.getElementById('chat-header-name').innerText = activeChatCharacter.name;
+            document.getElementById('chat-header-avatar').src = activeChatCharacter.avatar;
+            document.getElementById('chat-header-status').innerText = activeChatCharacter.status;
+
+            renderMessages();
+        }
+
+        // CLOSE CHAT ROOM
+        function closeChatRoom() {
+            document.getElementById('screen-chat-room').classList.add('hidden');
+            document.getElementById('screen-whatsapp').classList.remove('hidden');
+            renderChatList();
+        }
+
+        // RENDER CHAT MESSAGES
+        function renderMessages() {
+            const container = document.getElementById('chat-messages');
+            container.innerHTML = '';
+
+            const history = chatHistories[activeChatCharacter.id] || [];
+            history.forEach(msg => {
+                const bubble = document.createElement('div');
+                const isUser = msg.sender === 'user';
+                bubble.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
+                bubble.innerHTML = `
+                    <div class="max-w-[78%] px-3.5 py-2 rounded-2xl text-xs leading-relaxed ${isUser ? 'chat-bubble-user' : 'chat-bubble-model'}">
+                        ${msg.text}
+                    </div>
+                `;
+                container.appendChild(bubble);
+            });
+
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // SEND MESSAGE & CONNECT TO SERVERLESS API
+        async function sendMessage(e) {
+            e.preventDefault();
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if (!text || !activeChatCharacter) return;
+
+            chatHistories[activeChatCharacter.id].push({ sender: 'user', text: text });
+            input.value = '';
+            renderMessages();
+
+            // Typing indicator simulation
+            document.getElementById('chat-header-status').innerText = "Ketik pesan...";
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        character: activeChatCharacter.id,
+                        userMessage: text,
+                        history: chatHistories[activeChatCharacter.id],
+                        currentMission: currentMission
+                    })
+                });
+
+                const data = await response.json();
+                const replyText = data.reply || "Aduh sinyalku agak ngadat nih wkwk";
+                
+                chatHistories[activeChatCharacter.id].push({ sender: 'model', text: replyText });
+                document.getElementById('chat-header-status').innerText = "Online";
+                renderMessages();
+
+                // Check mission completion
+                const m = MISSIONS[currentMission];
+                if (m && m.req === 'whatsapp' && activeChatCharacter.id === 'rian') {
+                    advanceMission(currentMission + 1, `Misi ${currentMission} Selesai! Pesan terkirim ke ${activeChatCharacter.name}.`);
+                }
+
+            } catch (err) {
+                // Simulated fallback if network or API fails
+                setTimeout(() => {
+                    const fallbacks = [
+                        "Iya nih, kamu benar wkwk!",
+                        "Bisa aja kamu, jadi malu deh 😅",
+                        "Nanti kita bahas lagi pas ketemu ya!"
+                    ];
+                    const reply = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+                    chatHistories[activeChatCharacter.id].push({ sender: 'model', text: reply });
+                    document.getElementById('chat-header-status').innerText = "Online";
+                    renderMessages();
+
+                    const m = MISSIONS[currentMission];
+                    if (m && m.req === 'whatsapp') {
+                        advanceMission(currentMission + 1, `Misi ${currentMission} Selesai!`);
+                    }
+                }, 1000);
+            }
+        }
+
+        // TWITTER FEED & TWEET COMPOSER
+        function renderTwitterFeed() {
+            const container = document.getElementById('twitter-feed');
+            container.innerHTML = '';
+
+            twitterPosts.forEach(post => {
+                const div = document.createElement('div');
+                div.className = "border-b border-gray-900 pb-3";
+                div.innerHTML = `
+                    <div class="flex items-center space-x-2 mb-1.5">
+                        <img src="${post.avatar}" class="w-8 h-8 rounded-full object-cover">
+                        <div>
+                            <span class="text-xs font-bold">${post.author}</span>
+                            <span class="text-[10px] text-gray-500">${post.handle} · 1j</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-200 leading-normal">${post.content}</p>
+                    <div class="flex items-center space-x-6 mt-2 text-gray-500 text-xs">
+                        <button onclick="likeTweet(${post.id})" class="flex items-center space-x-1 hover:text-rose-500 transition ${post.liked ? 'text-rose-500' : ''}">
+                            <i class="fa-${post.liked ? 'solid' : 'regular'} fa-heart"></i>
+                            <span class="text-[10px]">${post.likes}</span>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function postTweet() {
+            const input = document.getElementById('tweet-input');
+            const val = input.value.trim();
+            if (!val) return;
+
+            twitterPosts.unshift({
+                id: Date.now(),
+                author: "Kamu",
+                handle: "@user_au",
+                avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop",
+                content: val,
+                likes: 1,
+                liked: true
+            });
+            input.value = '';
+            renderTwitterFeed();
+
+            const m = MISSIONS[currentMission];
+            if (m && m.req === 'twitter') {
+                advanceMission(currentMission + 1, `Misi ${currentMission} Selesai! Posting tweet berhasil.`);
+            }
+        }
+
+        function likeTweet(id) {
+            const post = twitterPosts.find(p => p.id === id);
+            if (post) {
+                post.liked = !post.liked;
+                post.likes += post.liked ? 1 : -1;
+                renderTwitterFeed();
+
+                const m = MISSIONS[currentMission];
+                if (m && m.req === 'twitter') {
+                    advanceMission(currentMission + 1, `Misi ${currentMission} Selesai! Menyuaki tweet.`);
+                }
+            }
+        }
+
+        // INSTAGRAM FEED & STORY INTERACTION
+        function renderIGFeed() {
+            const container = document.getElementById('ig-feed');
+            container.innerHTML = '';
+
+            igPosts.forEach(post => {
+                const div = document.createElement('div');
+                div.className = "space-y-2";
+                div.innerHTML = `
+                    <div class="flex items-center space-x-2 px-3">
+                        <img src="${post.avatar}" class="w-8 h-8 rounded-full object-cover">
+                        <span class="text-xs font-bold">${post.author}</span>
+                    </div>
+                    <img src="${post.image}" class="w-full aspect-square object-cover">
+                    <div class="px-3 space-y-1">
+                        <div class="flex items-center space-x-3 text-base">
+                            <i onclick="likeIGPost(${post.id})" class="fa-${post.liked ? 'solid text-rose-500' : 'regular'} fa-heart cursor-pointer"></i>
+                            <i class="fa-regular fa-comment cursor-pointer"></i>
+                        </div>
+                        <p class="text-xs font-bold">${post.likes} menyukai</p>
+                        <p class="text-xs"><span class="font-bold">${post.author}</span> ${post.caption}</p>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function likeIGPost(id) {
+            const post = igPosts.find(p => p.id === id);
+            if (post) {
+                post.liked = !post.liked;
+                post.likes += post.liked ? 1 : -1;
+                renderIGFeed();
+
+                const m = MISSIONS[currentMission];
+                if (m && m.req === 'instagram') {
+                    advanceMission(currentMission + 1, `Misi ${currentMission} Selesai! Postingan Instagram disukai.`);
+                }
+            }
+        }
+
+        function clickIGStory(user) {
+            showToast(`Menonton Story IG ${user}... "Kangen kopi rasa boba sore ini..."`);
+            const m = MISSIONS[currentMission];
+            if (m && m.req === 'instagram') {
+                advanceMission(currentMission + 1, `Misi ${currentMission} Selesai! Story Instagram ditonton.`);
+            }
+        }
+
+        // TIKTOK INTERACTIONS
+        function likeTikTokVideo() {
+            const btn = document.getElementById('tiktok-heart-btn');
+            btn.classList.toggle('text-rose-500');
+            showToast("Menyukai video TikTok Kopi Nanti!");
+
+            const m = MISSIONS[currentMission];
+            if (m && m.req === 'tiktok') {
+                advanceMission(currentMission + 1, `Misi ${currentMission} Selesai! Video TikTok disukai.`);
+            }
+        }
+
+        function interactTikTokComment() {
+            showToast("Mengirimkan komentar di TikTok!");
+        }
+
+        // CAMERA FUNCTIONALITY
+        function toggleCameraFilter() {
+            cameraFilterIndex = (cameraFilterIndex + 1) % cameraFilters.length;
+            const filterName = cameraFilters[cameraFilterIndex];
+            document.getElementById('camera-filter-tag').innerText = `Filter: ${filterName}`;
+
+            const preview = document.getElementById('camera-preview');
+            if (filterName === "Vintage") preview.style.filter = "sepia(0.6) contrast(1.1)";
+            else if (filterName === "Black & White") preview.style.filter = "grayscale(1)";
+            else if (filterName === "Cyberpunk") preview.style.filter = "hue-rotate(180deg) saturate(2)";
+            else preview.style.filter = "none";
+        }
+
+        function takePhoto() {
+            const flash = document.getElementById('camera-flash');
+            flash.classList.add('flash-active');
+            setTimeout(() => flash.classList.remove('flash-active'), 300);
+
+            // Save new captured photo directly to Photos gallery
+            const newPhoto = {
+                id: Date.now(),
+                title: `Foto AU ${userCapturedPhotos.length + 1}`,
+                img: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=400&auto=format&fit=crop"
+            };
+            userCapturedPhotos.unshift(newPhoto);
+            document.getElementById('camera-thumb').src = newPhoto.img;
+            renderGalleryPhotos();
+
+            showToast("📸 Foto berhasil disimpan ke Galeri!");
+
+            const m = MISSIONS[currentMission];
+            if (m && m.req === 'camera') {
+                advanceMission(currentMission + 1, `Misi ${currentMission} Selesai! Foto berhasil diambil.`);
+            }
+        }
+
+        // RENDER PHOTOS GALLERY
+        function renderGalleryPhotos() {
+            const container = document.getElementById('photos-grid');
+            container.innerHTML = '';
+
+            document.getElementById('photos-count-badge').innerText = `${userCapturedPhotos.length} Foto`;
+
+            userCapturedPhotos.forEach(p => {
+                const div = document.createElement('div');
+                div.className = "relative aspect-square rounded-xl overflow-hidden bg-gray-900 border border-gray-800";
+                div.innerHTML = `
+                    <img src="${p.img}" class="w-full h-full object-cover">
+                    <span class="absolute bottom-1.5 left-1.5 text-[9px] bg-black/75 backdrop-blur px-2 py-0.5 rounded font-semibold text-white">
+                        ${p.title}
+                    </span>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // TELEPHONE CALL MODAL
+        function triggerCallModal() {
+            if (!activeChatCharacter) return;
+
+            document.getElementById('call-avatar').src = activeChatCharacter.avatar;
+            document.getElementById('call-name').innerText = activeChatCharacter.name;
+            document.getElementById('call-modal').classList.remove('hidden');
+            document.getElementById('call-modal').classList.add('flex');
+
+            setTimeout(() => {
+                document.getElementById('call-status').innerText = "Terhubung (00:08)";
+                const m = MISSIONS[currentMission];
+                if (m && m.req === 'whatsapp') {
+                    advanceMission(currentMission + 1, `Misi ${currentMission} Selesai! Telepon berhasil terhubung.`);
+                }
+            }, 2500);
+        }
+
+        function endCallModal() {
+            document.getElementById('call-modal').classList.add('hidden');
+            document.getElementById('call-modal').classList.remove('flex');
+            document.getElementById('call-status').innerText = "Memanggil...";
+        }
+
+        // MANUAL MISSION SELECTOR
+        function setupMissionSelector() {
+            const select = document.getElementById('mission-selector');
+            select.innerHTML = '';
+
+            Object.keys(MISSIONS).forEach(mNum => {
+                const opt = document.createElement('option');
+                opt.value = mNum;
+                opt.innerText = `Misi ${mNum}: ${MISSIONS[mNum].title}`;
+                if (parseInt(mNum) === currentMission) opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
+
+        function changeMissionManual(mVal) {
+            currentMission = parseInt(mVal);
+            affinityScore = Math.floor((currentMission / 50) * 100);
+            updateMissionUI();
+            showToast(`Diubah manual ke Misi ${currentMission}`);
+        }
+
+        // RESET PROGRESS
+        function resetProgress() {
+            currentMission = 1;
+            affinityScore = 0;
+            isMissionTimeLocked = false;
+            clearInterval(lockTimerInterval);
+            updateMissionUI();
+            alert("Seluruh cerita dan alur misi telah di-reset ke awal.");
+            goHome();
+        }
+    </script>
 </body>
 </html>
+```
